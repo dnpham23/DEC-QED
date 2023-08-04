@@ -20,7 +20,8 @@ DEC-QED as a computational toolbox is still in early stage of development. Altho
 
 ## References
 <a id="1">[1]</a> 
-D. N. Pham, W. Fan, M. G. Scheer, and H. E. Tureci, [arXiv:2212.12775](https://arxiv.org/abs/2212.12775) (2022).
+D. N. Pham, W. Fan, M. G. Scheer, and H. E. Tureci, [Phys. Rev. A 107, 053704](https://journals.aps.org/pra/abstract/10.1103/PhysRevA.107.053704) (2023)
+[arXiv:2212.12775](https://arxiv.org/abs/2212.12775) (2022).
 
 <a id="2">[2]</a> 
 A. N. Hirani, [PhD Thesis](https://www.proquest.com/docview/305342733?pq-origsite=gscholar&fromopenview=true) (2003).
