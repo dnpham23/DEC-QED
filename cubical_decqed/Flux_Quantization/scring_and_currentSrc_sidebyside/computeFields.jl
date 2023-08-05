@@ -162,7 +162,6 @@ function computeCurrent_JJ3D(phixp::Array{Float64,1},phiyp::Array{Float64,1}, ph
             rho_avg    = 0.5*(rho_list[vind_left] + rho_list[vind_right]);
             
             Ix[xind] = -(Is1*invLambda2[xind] + Is3*rho_avg)*phixp[xind]/lx + ecurrent[xind] + ecurrentJJ[xind];
-            #Ix[xind] = -(Is1*invLambda2[xind] + Is3*rho_avg)*phixp[xind]/lx + ecurrentJJ[xind];
         end
     end
     
@@ -178,7 +177,6 @@ function computeCurrent_JJ3D(phixp::Array{Float64,1},phiyp::Array{Float64,1}, ph
             rho_avg     = 0.5*(rho_list[vind_ybelow] + rho_list[vind_yabove]);
       
             Iy[yind] = -(Is1*invLambda2[real_yind] + Is3*rho_avg)*phiyp[yind]/ly + ecurrent[real_yind] + ecurrentJJ[real_yind];
-            #Iy[yind] = -(Is1*invLambda2[real_yind] + Is3*rho_avg)*phiyp[yind]/ly + ecurrentJJ[real_yind];
         end
     end
     
@@ -193,7 +191,6 @@ function computeCurrent_JJ3D(phixp::Array{Float64,1},phiyp::Array{Float64,1}, ph
             vind_zabove = vind_zbelow + Nv_xyplane;
             rho_avg     = 0.5*(rho_list[vind_zbelow] + rho_list[vind_zabove]);
             Iz[zind] = -(Is1*invLambda2[real_zind] + Is3*rho_avg)*phizp[zind]/lz + ecurrent[real_zind] + ecurrentJJ[real_zind];
-            #Iz[zind] = -(Is1*invLambda2[real_zind] + Is3*rho_avg)*phizp[zind]/lz + ecurrentJJ[real_zind];
         end
     end
     return Ix, Iy, Iz;
