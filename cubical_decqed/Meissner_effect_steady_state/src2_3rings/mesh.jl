@@ -1,5 +1,5 @@
 # Generate a rectangular cuboid mesh
-function Mesh3Dcube(xmax::Float64,xmin::Float64,ymax::Float64,ymin::Float64,zmax::Float64,zmin::Float64,Nx::Int64,Ny::Int64,Nz::Int64, ne_x::Int64,ne_y::Int64,ne_z::Int64,Ne_x::Int64,Ne_y::Int64, Ne_z::Int64, Ne::Int64,Nv::Int64,lx::Float64,ly::Float64,lz::Float64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64)
+function Mesh3Dcube(xmin::Float64,ymin::Float64,zmin::Float64,Nx::Int64,ne_x::Int64,Ne_x::Int64,Ne_y::Int64, Ne_z::Int64, Ne::Int64,Nv::Int64,lx::Float64,ly::Float64,lz::Float64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64)
 
     v = Array{Float64,2}(undef, Nv, 3);
     e = Array{Int,2}(undef, Ne, 2);

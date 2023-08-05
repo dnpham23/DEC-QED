@@ -187,20 +187,22 @@ currentamp[2*ne_per_ring+ne_x_loop+1 : 2*ne_per_ring+2*ne_x_loop] = -1.0*J*ones(
 currentamp[2*ne_per_ring+2*ne_x_loop+1 : 2*ne_per_ring+2*ne_x_loop+ne_y_loop] = -1.0*J*ones(ne_y_loop);
 currentamp[2*ne_per_ring+2*ne_x_loop+ne_y_loop+1 : 3*ne_per_ring] = J*ones(ne_y_loop);
 
-e,v  = Mesh3Dcube(xmax,xmin,ymax,ymin,zmax,zmin,Nx,Ny,Nz, ne_x,ne_y,ne_z,Ne_x,Ne_y, Ne_z, Ne,Nv,lx,ly,lz, Nv_xyplane, Nex_xyplane, Ney_xyplane);
+e,v  = Mesh3Dcube(xmin,ymin,zmin,Nx,ne_x,Ne_x,Ne_y, Ne_z, Ne,Nv,lx,ly,lz, Nv_xyplane, Nex_xyplane, Ney_xyplane);
 vbound, xtol, ytol, ztol  = vboundary3D(v,xmax,xmin,ymax,ymin,zmax,zmin, Nv,Nx,Ny,Nv_xyplane);
 v2exmap, v2eymap, v2ezmap = vemap3D(e,v,vbound,Nx,Ny,Nz,Nv,ne_x,Ne_x, Ne_y, xtol, ytol,ztol,xmin,xmax,ymin,ymax,zmin,zmax, Nex_xyplane, Ney_xyplane, Nv_xyplane);
-e_sc = regionsort3D(e,v,Nx,Ny,Nv,ne_x,ne_y,Ne_x,Ne_y, lx,ly,ne_scx,ne_scy,ne_scz,Ne_scx,Ne_scy,Ne_scz, Ne_sc, Ne_scx_xyplane, Ne_scy_xyplane, Ne_scz_xyplane, Nv_xyplane, Nex_xyplane, Ney_xyplane, ne_airx_seg, ne_airy_seg,ne_airz_seg);
+e_sc       = regionsort3D(e,v,Nx,Ny,Nv,ne_x,ne_y,Ne_x,Ne_y, lx,ly,ne_scx,ne_scy,ne_scz,Ne_scx,Ne_scy,Ne_scz, Ne_sc, Ne_scx_xyplane, Ne_scy_xyplane, Ne_scz_xyplane, Nv_xyplane, Nex_xyplane, Ney_xyplane, ne_airx_seg, ne_airy_seg,ne_airz_seg);
 ebound     = eboundary3D(vbound,e,ne_x,ne_y,ne_z,Ne,Nx, Ny, Nz, Ne_x, Ne_y, Nex_xyplane, Ney_xyplane);
-invLambda2 = materials(Ne, e_sc, mu_sc,eps_sc,mu_air,eps_air,lambda);
+invLambda2 = materials(Ne, e_sc, lambda);
 
-tree       = stree3D(e,Nx,ne_x,ne_y,Nbranch,Ney_xyplane,Ne_x,Ne_y,Ne_z);
+tree       = stree3D(ne_x,Nbranch,Ney_xyplane,Ne_x,Ne_y, Ne_z);
+
 ## solve for phi
 ecurrent   = current3D(v,currentloc,currentamp,xtol,ytol,ztol, Nv, Nx, Ne,e);
 # solve for phi_p
-HMat      = SteadyState_HMat_3D(Is1,Ne,ne_x,Nx,Ne_x,Ne_y,ebound, lx,ly,lz,Ny,ne_y,invLambda2,Nex_xyplane, Ney_xyplane, Nv_xyplane);
+HMat      = SteadyState_HMat_3D(Is1,Ne,ne_x,Nx,Ne_x,Ne_y,ebound, lx,ly,lz,invLambda2,Nex_xyplane, Ney_xyplane, Nv_xyplane);
 Kcol      = SteadyState_Kcol(ecurrent,lx,ly,lz);
-z         = reducedPhiMat3D(tree,Ne,Nbranch,ne_x,ne_y,ne_z, Ne_x, Ne_y, Nx,Ny, Nz, Nex_xyplane, Ney_xyplane, Nv_xyplane);
+z         = reducedPhiMat3D(Ne,ne_x,ne_y,ne_z, Ne_x, Ne_y, Nx,Ny, Nz, Nex_xyplane, Ney_xyplane, Nv_xyplane);
+
 RMat         = z'*HMat*z;
 Kcol_reduced = z'*Kcol;
 HMat         = nothing;
