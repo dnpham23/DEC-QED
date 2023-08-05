@@ -1,4 +1,4 @@
-function stree3D(e::Array{Int,2},Nx::Int64,ne_x::Int64,ne_y::Int64,Nbranch::Int64,Ney_xyplane::Int64,Ne_x::Int64,Ne_y::Int64, Ne_z::Int64)
+function stree3D(ne_x::Int64,Nbranch::Int64,Ney_xyplane::Int64,Ne_x::Int64,Ne_y::Int64, Ne_z::Int64)
     #tree = Array{Int,2}(undef, Nbranch, 1);
     tree = Array{Int,1}(undef, Nbranch);
     # first, take the x edges lying on the y=ymin, z=zmin line of the domain boundary

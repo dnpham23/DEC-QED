@@ -1,4 +1,4 @@
-function reducedMat(tree::Array{Int,1},Ne::Int64,Nbranch::Int64,ne_x::Int64,ne_y::Int64,Ne_x::Int64,Nx::Int64)
+function reducedMat(tree::Array{Int,1},Ne::Int64,Nbranch::Int64,ne_x::Int64,Ne_x::Int64,Nx::Int64)
     #x = Array{Float64,2}(undef, Ne, nbranch);
     x = zeros(Ne, Nbranch);
     lastbranch = tree[Nbranch];
@@ -10,11 +10,6 @@ function reducedMat(tree::Array{Int,1},Ne::Int64,Nbranch::Int64,ne_x::Int64,ne_y
         elseif lastbranch < i # if this edge is in the last row of branches (that was not in tree)
             colnum = (i-Ne_x-1)%Nx + 1; 
             x[i,colnum] = 1; # this is to impose zero BC for this edge
-            #for j = 1:(ne_y-1)
-            #    iremain = (i-Ne_x-1)%Nx + 1;
-            #    btemp   = ne_x + (j-1)*Nx + iremain;
-            #    x[i,btemp] = -1;
-            #end
         elseif (i < (Ne_x-ne_x))&&(colnum != 1)&&(colnum != ne_x)   # if this edge is not a branch, and it is not at the boundary
             rownum = div(i-1,ne_x) + 1;
             colnum = (i-1)%ne_x + 1;
@@ -59,8 +54,7 @@ function GaussMat(v2exmap::Array{Int,2},v2eymap::Array{Int,2},Nv::Int64,Ne::Int6
     return Y;
 end
 
-function charge(v::Array{Float64,2},chargeloc::Array{Float64,2},chargeamp::Array{Float64,1},xtol::Float64,ytol::Float64,Nv::Int64,Nx::Int64, eps_air::Float64,eps_sc::Float64,psixpast1::Array{Float64,1},psiypast1::Array{Float64,1},phixp_past1::Array{Float64,1},phiyp_past1::Array{Float64,1}, v2exmap::Array{Int,2},v2eymap::Array{Int,2},v_sc::Array{Int,1},Nv_sc::Int64,A2::Float64,G1::Float64,G2::Float64,dt::Float64, mu_sc::Float64, lambda::Float64,lx::Float64,ly::Float64, e_scx::Array{Int,1}, e_scy::Array{Int,1},ne_scx_seg::Int64, ne_scy_seg::Int64, v_interface::Array{Int,1},Ne_x::Int64)
-    #ytol = xtol*1.0;
+function charge(v::Array{Float64,2},chargeloc::Array{Float64,2},chargeamp::Array{Float64,1},xtol::Float64,ytol::Float64,Nv::Int64,Nx::Int64, eps_air::Float64,A2::Float64)
     numcharge = length(chargeloc[:,1]);
     vcharge = zeros(Nv,1);
     for i = 1:numcharge
@@ -143,8 +137,7 @@ function charge2(v::Array{Float64,2},chargeloc::Array{Float64,2},chargeamp::Arra
 end
 
 
-function charge3(v::Array{Float64,2},chargeloc::Array{Float64,2},chargeamp::Array{Float64,1},xtol::Float64,ytol::Float64,Nv::Int64, Nx::Int64, eps_air::Float64,eps_sc::Float64,psixpast1::Array{Float64,1},psiypast1::Array{Float64,1},phixp_past1::Array{Float64,1}, phiyp_past1::Array{Float64,1}, v2exmap::Array{Int,2},v2eymap::Array{Int,2},v_sc::Array{Int,1},Nv_sc::Int64,A2::Float64,G1::Float64, G2::Float64, dt::Float64, mu_sc::Float64, lambda::Float64,lx::Float64,ly::Float64, e_scx::Array{Int,1}, e_scy::Array{Int,1},ne_scx_seg::Int64, ne_scy_seg::Int64, v_interface::Array{Int,1},Ne_x::Int64)
-    #ytol = xtol*1.0;
+function charge3(v::Array{Float64,2},chargeloc::Array{Float64,2},chargeamp::Array{Float64,1},xtol::Float64,ytol::Float64,Nv::Int64, Nx::Int64, eps_air::Float64,eps_sc::Float64,psixpast1::Array{Float64,1},psiypast1::Array{Float64,1},phixp_past1::Array{Float64,1}, phiyp_past1::Array{Float64,1}, v2exmap::Array{Int,2},v2eymap::Array{Int,2},v_sc::Array{Int,1},A2::Float64,G1::Float64, G2::Float64, dt::Float64, mu_sc::Float64, lambda::Float64,lx::Float64, ly::Float64, Ne_x::Int64)
     numcharge = length(chargeloc[:,1]);
     vcharge = zeros(Nv,1);
     for i = 1:numcharge
@@ -239,7 +232,7 @@ function current3D(v::Array{Float64,2},currentloc::Array{Float64,3},currentamp::
     return ecurrent;
 end
 
-function Ampere_AMat(S4::Float64,dt::Float64,Ne::Int64,ne_x::Int64, Nx::Int64,Ne_x::Int64,Ne_y::Int64,ebound::Array{Int64,1}, e_sc::Array{Int,1}, lx::Float64,ly::Float64,Ny::Int64,ne_y::Int64, eps_list::Array{Float64,1}, mu_list::Array{Float64,1})
+function Ampere_AMat(S4::Float64,dt::Float64,Ne::Int64,ne_x::Int64, Nx::Int64,Ne_x::Int64,Ne_y::Int64,ebound::Array{Int64,1}, lx::Float64,ly::Float64,ne_y::Int64, eps_list::Array{Float64,1}, mu_list::Array{Float64,1})
 
     AMat = zeros(Ne, Ne);
     # x-edges
@@ -276,7 +269,7 @@ function Ampere_AMat(S4::Float64,dt::Float64,Ne::Int64,ne_x::Int64, Nx::Int64,Ne
     return AMat;
 end
 
-function Ampere_BMat(dt::Float64,Ne::Int64,Nx::Int64, Ny::Int64,ne_x::Int64,ebound_all::Array{Int64,1},eps_list::Array{Float64,1}, mu_list::Array{Float64,1})
+function Ampere_BMat(dt::Float64,Ne::Int64,ebound_all::Array{Int64,1},eps_list::Array{Float64,1}, mu_list::Array{Float64,1})
     
     BMat = zeros(Ne, Ne);    
     for i = 1:Ne
@@ -288,7 +281,7 @@ function Ampere_BMat(dt::Float64,Ne::Int64,Nx::Int64, Ny::Int64,ne_x::Int64,ebou
     return BMat;
 end
 
-function Ampere_Ccol(J1::Float64,S1::Float64,S2::Float64,S3::Float64,S4::Float64,dt::Float64,ne_x::Int64,Nx::Int64,Ne_x::Int64,Ne_y::Int64, ebound_all::Array{Int64,1},psixpast1::Array{Float64,1},psiypast1::Array{Float64,1},phixp_past1::Array{Float64,1},phiyp_past1::Array{Float64,1}, phixp_past2::Array{Float64,1},phiyp_past2::Array{Float64,1}, e_sc::Array{Int,1},Ny::Int64,e_scx::Array{Int,1},e_scy::Array{Int,1}, lx::Float64,ly::Float64,ne_y::Int64,eps_list::Array{Float64,1}, mu_list::Array{Float64,1}, invLambda2::Array{Float64,1},Ne::Int64, ecurrent::Array{Float64,2})
+function Ampere_Ccol(J1::Float64,S1::Float64,S2::Float64,S3::Float64,S4::Float64,dt::Float64,ne_x::Int64,Nx::Int64,Ne_x::Int64,Ne_y::Int64, ebound_all::Array{Int64,1},psixpast1::Array{Float64,1},psiypast1::Array{Float64,1},phixp_past1::Array{Float64,1},phiyp_past1::Array{Float64,1}, phixp_past2::Array{Float64,1},phiyp_past2::Array{Float64,1}, lx::Float64,ly::Float64,eps_list::Array{Float64,1}, mu_list::Array{Float64,1}, invLambda2::Array{Float64,1},Ne::Int64, ecurrent::Array{Float64,2})
 
     Ccol = zeros(Ne,1);
 
@@ -418,7 +411,7 @@ function Ampere_Kcol(AMat::Array{Float64,2},BMat::Array{Float64,2},Ccol::Array{F
     return Kcol;
 end
 
-function SteadyState_HMat_3D(Is1::Float64,Ne::Int64,ne_x::Int64,Nx::Int64,Ne_x::Int64,Ne_y::Int64,ebound::Array{Int64,1}, lx::Float64,ly::Float64,lz::Float64,Ny::Int64,ne_y::Int64,invLambda2::Array{Float64,1},Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
+function SteadyState_HMat_3D(Is1::Float64,Ne::Int64,ne_x::Int64,Nx::Int64,Ne_x::Int64,Ne_y::Int64,ebound::Array{Int64,1}, lx::Float64,ly::Float64,lz::Float64,invLambda2::Array{Float64,1},Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
     HMat = zeros(Ne,Ne);
     for xind=1:Ne_x
         if !(xind in ebound)
@@ -561,7 +554,7 @@ function SteadyState_Kcol(ecurrent::Array{Float64,2},lx::Float64,ly::Float64, lz
     return Kcol;
 end
 
-function reducedPhiMat3D(tree::Array{Int,1},Ne::Int64,Nbranch::Int64,ne_x::Int64,ne_y::Int64,ne_z::Int64, Ne_x::Int64, Ne_y::Int64, Nx::Int64,Ny::Int64, Nz::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
+function reducedPhiMat3D(Ne::Int64,ne_x::Int64,ne_y::Int64,ne_z::Int64, Ne_x::Int64, Ne_y::Int64, Nx::Int64,Ny::Int64, Nz::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
     Nx_reducedPhi = ne_x*ne_y + ne_x*Ny*ne_z;
     Ny_reducedPhi = ne_y*Nx*ne_z;
     Nreduced = Nx_reducedPhi + Ny_reducedPhi;

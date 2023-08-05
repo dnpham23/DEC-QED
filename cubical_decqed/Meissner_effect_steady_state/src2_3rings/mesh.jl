@@ -181,18 +181,12 @@ function regionsort3D(e::Array{Int,2},v::Array{Float64,2},Nx::Int64,Ny::Int64,Nv
     return e_sc;
 end
 
-function materials(Ne::Int64, e_sc::Array{Int,1}, mu_sc::Float64,eps_sc::Float64,mu_air::Float64,eps_air::Float64,lambda::Float64)
-    #eps_list   = Array{Float64,1}(undef, Ne);
-    #mu_list    = Array{Float64,1}(undef, Ne);
+function materials(Ne::Int64, e_sc::Array{Int,1}, lambda::Float64)
     invLambda2 = Array{Float64,1}(undef, Ne);
     for i = 1:Ne
         if (i in e_sc)
-            #eps_list[i]   = eps_sc;
-            #mu_list[i]    = mu_sc;
             invLambda2[i] = 1/lambda^2;
         else
-            #eps_list[i]   = eps_air;
-            #mu_list[i]    = mu_air;
             invLambda2[i] = 0.0;
         end
     end
