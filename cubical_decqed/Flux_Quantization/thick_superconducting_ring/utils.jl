@@ -1,5 +1,4 @@
 function reducedMat(tree::Array{Int,1},Ne::Int64,Nbranch::Int64,ne_x::Int64,ne_y::Int64,Ne_x::Int64,Nx::Int64)
-    #x = Array{Float64,2}(undef, Ne, nbranch);
     x = zeros(Ne, Nbranch);
     lastbranch = tree[Nbranch];
     for i = 1:Ne
@@ -10,11 +9,6 @@ function reducedMat(tree::Array{Int,1},Ne::Int64,Nbranch::Int64,ne_x::Int64,ne_y
         elseif lastbranch < i # if this edge is in the last row of branches (that was not in tree)
             colnum = (i-Ne_x-1)%Nx + 1; 
             x[i,colnum] = 1; # this is to impose zero BC for this edge
-            #for j = 1:(ne_y-1)
-            #    iremain = (i-Ne_x-1)%Nx + 1;
-            #    btemp   = ne_x + (j-1)*Nx + iremain;
-            #    x[i,btemp] = -1;
-            #end
         elseif (i < (Ne_x-ne_x))&&(colnum != 1)&&(colnum != ne_x)   # if this edge is not a branch, and it is not at the boundary
             rownum = div(i-1,ne_x) + 1;
             colnum = (i-1)%ne_x + 1;
@@ -60,7 +54,6 @@ function GaussMat(v2exmap::Array{Int,2},v2eymap::Array{Int,2},Nv::Int64,Ne::Int6
 end
 
 function charge(v::Array{Float64,2},chargeloc::Array{Float64,2},chargeamp::Array{Float64,1},xtol::Float64,ytol::Float64,Nv::Int64,Nx::Int64, eps_air::Float64,eps_sc::Float64,psixpast1::Array{Float64,1},psiypast1::Array{Float64,1},phixp_past1::Array{Float64,1},phiyp_past1::Array{Float64,1}, v2exmap::Array{Int,2},v2eymap::Array{Int,2},v_sc::Array{Int,1},Nv_sc::Int64,A2::Float64,G1::Float64,G2::Float64,dt::Float64, mu_sc::Float64, lambda::Float64,lx::Float64,ly::Float64, e_scx::Array{Int,1}, e_scy::Array{Int,1},ne_scx_seg::Int64, ne_scy_seg::Int64, v_interface::Array{Int,1},Ne_x::Int64)
-    #ytol = xtol*1.0;
     numcharge = length(chargeloc[:,1]);
     vcharge = zeros(Nv,1);
     for i = 1:numcharge
@@ -79,7 +72,6 @@ end
 
 
 function charge2(v::Array{Float64,2},chargeloc::Array{Float64,2},chargeamp::Array{Float64,1},xtol::Float64,ytol::Float64,Nv::Int64, Nx::Int64, eps_air::Float64,eps_sc::Float64,psixpast1::Array{Float64,1},psiypast1::Array{Float64,1},phixp_past1::Array{Float64,1}, phiyp_past1::Array{Float64,1}, v2exmap::Array{Int,2},v2eymap::Array{Int,2},A2::Float64,G1::Float64, G2::Float64, dt::Float64, mu_sc::Float64, lambda::Float64,lx::Float64,ly::Float64, Ne_x::Int64,v_sc::Array{Int,1})
-    #ytol = xtol*1.0;
     numcharge = length(chargeloc[:,1]);
     vcharge = zeros(Nv,1);
     for i = 1:numcharge
@@ -144,7 +136,6 @@ end
 
 
 function charge3(v::Array{Float64,2},chargeloc::Array{Float64,2},chargeamp::Array{Float64,1},xtol::Float64,ytol::Float64,Nv::Int64, Nx::Int64, eps_air::Float64,eps_sc::Float64,psixpast1::Array{Float64,1},psiypast1::Array{Float64,1},phixp_past1::Array{Float64,1}, phiyp_past1::Array{Float64,1}, v2exmap::Array{Int,2},v2eymap::Array{Int,2},v_sc::Array{Int,1},Nv_sc::Int64,A2::Float64,G1::Float64, G2::Float64, dt::Float64, mu_sc::Float64, lambda::Float64,lx::Float64,ly::Float64, e_scx::Array{Int,1}, e_scy::Array{Int,1},ne_scx_seg::Int64, ne_scy_seg::Int64, v_interface::Array{Int,1},Ne_x::Int64)
-    #ytol = xtol*1.0;
     numcharge = length(chargeloc[:,1]);
     vcharge = zeros(Nv,1);
     for i = 1:numcharge
@@ -256,7 +247,6 @@ function Ampere_AMat3D(S4::Float64,dt::Float64,Ne::Int64,ne_x::Int64, Nx::Int64,
 
     AMat = zeros(Ne, Ne);
     # x-edges
-    #Threads.@threads for xind = 1:Ne_x
     for xind = 1:Ne_x
         if !(xind in ebound)
             ie_xyplane = (xind-1)%Nex_xyplane + 1;
@@ -279,7 +269,6 @@ function Ampere_AMat3D(S4::Float64,dt::Float64,Ne::Int64,ne_x::Int64, Nx::Int64,
     end
     
     # y-edges
-    #Threads.@threads for yind=1:Ne_y
     for yind=1:Ne_y
         real_yind = yind + Ne_x;
         if !(real_yind in ebound)
@@ -303,7 +292,6 @@ function Ampere_AMat3D(S4::Float64,dt::Float64,Ne::Int64,ne_x::Int64, Nx::Int64,
     end
     
     # z-edges
-    #Threads.@threads for zind=1:Ne_z
     for zind=1:Ne_z
         real_zind = zind + Ne_x + Ne_y;
         if !(real_zind in ebound)
@@ -346,7 +334,6 @@ function Ampere_Ccol3D_2(J1::Float64, S1::Float64, S2::Float64, S4::Float64, S5:
     Ccol = zeros(Ne,1);
     
     ### x edge loop
-    #Threads.@threads for xind=1:Ne_x
     for xind=1:Ne_x
         if !(xind in ebound_all)
             ie_xyplane = (xind-1)%Nex_xyplane + 1;
@@ -391,12 +378,10 @@ function Ampere_Ccol3D_2(J1::Float64, S1::Float64, S2::Float64, S4::Float64, S5:
             end
             
             Ccol[xind] = temp1+temp2+temp5+temp4+leftover - J1*lx/(ly*lz)*(ecurrent[xind]+ecurrentJJ[xind]);               
-            #Ccol[xind] = temp1+temp2+leftover - J1*lx/(ly*lz)*ecurrent[xind]; 
         end
     end
 
     ### y edge loop
-    #Threads.@threads for yind=1:Ne_y
     for yind=1:Ne_y
         real_yind = yind + Ne_x;
         if !(real_yind in ebound_all)
@@ -443,7 +428,6 @@ function Ampere_Ccol3D_2(J1::Float64, S1::Float64, S2::Float64, S4::Float64, S5:
             end
             
             Ccol[real_yind] = temp1+temp2+temp5+temp4+leftover - J1*ly/(lx*lz)*(ecurrent[real_yind]+ecurrentJJ[real_yind]);
-            #Ccol[real_yind] = temp1+temp2+leftover - J1*ly/(lx*lz)*ecurrent[real_yind];
         end
     end
     
@@ -495,7 +479,6 @@ function Ampere_Ccol3D_2(J1::Float64, S1::Float64, S2::Float64, S4::Float64, S5:
             end
             
             Ccol[real_zind] = temp1+temp2+temp5+temp4+leftover - J1*lz/(lx*ly)*(ecurrent[real_zind]+ecurrentJJ[real_zind]);
-            #Ccol[real_zind] = temp1+temp2+leftover - J1*lz/(lx*ly)*ecurrent[real_zind];
         end
     end
     
@@ -574,9 +557,7 @@ end
 function Ampere_Kcol(AMat::Array{Float64,2},BMat::Array{Float64,2},Ccol::Array{Float64,2},phixp_past1::Array{Float64,1}, phiyp_past1::Array{Float64,1}, phizp_past1::Array{Float64,1})
     phip_past1      = [phixp_past1; phiyp_past1; phizp_past1];
 
-    #BLAS.set_num_threads(6);
     Kcol = AMat*(phip_past1.*phip_past1) + BMat*phip_past1 + Ccol;
-    #BLAS.set_num_threads(1);
 
     return Kcol;
 end
@@ -745,7 +726,6 @@ function reducedPhiMat3D(tree::Array{Int,1},Ne::Int64,Nbranch::Int64,ne_x::Int64
     end
     
     # now, the first row of x-edges (these edges are tree branches)
-    #for i = 2:ne_x-1
     for i = 1:ne_x
         # first consider the edges in the first xy plane
         for j = 1:ne_y

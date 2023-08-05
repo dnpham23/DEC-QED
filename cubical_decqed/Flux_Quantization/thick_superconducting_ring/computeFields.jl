@@ -34,9 +34,6 @@ function computeBfield3D(phix::Array{Float64,1},phiy::Array{Float64,1},phiz::Arr
     N_Bx = ne_y*ne_z*Nx;
     N_By = ne_x*ne_z*Ny;
     N_Bz = ne_x*ne_y*Nz;
-    #Bx =  Array{Float64,1}(undef, N_Bx);
-    #By =  Array{Float64,1}(undef, N_By);
-    #Bz =  Array{Float64,1}(undef, N_Bz);
     Bx = zeros(Nx, ne_y, ne_z);
     By = zeros(ne_x, Ny, ne_z);
     Bz = zeros(ne_x, ne_y, Nz);

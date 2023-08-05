@@ -1,7 +1,5 @@
-#function main()
-    using JLD2;
-    #using IterativeSolvers;
-    include("mesh.jl"); include("tree.jl"); include("utils.jl"); include("linsolve.jl"); include("amperesolve.jl");include("amperesolve_delta.jl"); include("plotting.jl"); include("computeFields.jl");
+using JLD2;
+include("mesh.jl"); include("tree.jl"); include("utils.jl"); include("linsolve.jl"); include("amperesolve.jl");include("amperesolve_delta.jl"); include("plotting.jl"); include("computeFields.jl");
 
 # dimensions of the problem (all lengths are scaled by penetration depth lambda_L)
 xmax =  30.0;
@@ -173,8 +171,6 @@ ebound, ebound_all  = eboundary3D(vbound,e,ne_x,ne_y,ne_z,Ne,Nx, Ny, Nz, Ne_x, N
 invLambda2 = materials_scringJJ(Ne, e_sc, e_jj, lambda);
 
 tree       = stree3D(e,Nx,ne_x,ne_y,Nbranch,Ney_xyplane,Ne_x,Ne_y,Ne_z);
-#x          = reducedMat(tree,Ne,Nbranch,ne_x,ne_y,Ne_x,Nx); # NEEDS 3D VERSION
-#Y          = GaussMat(v2exmap,v2eymap,Nv,Ne,Nx,lx,ly);      # NEEDS 3D VERSION
 
 # Allocate space to hold the solutions
 phixpgrid = zeros(ne_x,Ny,Nz,Nstep);
@@ -190,7 +186,6 @@ Izgrid    = zeros(Nx,Ny,ne_z,Nstep);
 
 BLAS.set_num_threads(1);
 for tn = 1:Nstep
-#for tn = 1:5
     println("Time step: ", tn, "\n");
     # Field values of the previous timestep
     if tn == 1
@@ -256,9 +251,7 @@ for tn = 1:Nstep
     phip_next_y = phip_next[Ne_x+1:Ne_x+Ne_y];
     phip_next_z = phip_next[Ne_x+Ne_y+1:end];    
 
-    ##phix, phiy  = computePhi(phix_past1, phiy_past1, phip_next_x, phip_next_y, phixp_past1, phiyp_past1, psixpast1, psiypast1, S4,dt,ne_x, Nx, Ne_x,Ne_y, ebound_all,lx,ly);
     Bx, By, Bz      = computeBfield3D(phip_next_x, phip_next_y, phip_next_z, Ne, Nx, Ny, Nz,ne_x, ne_y, ne_z, lx, ly, lz,Nex_xyplane, Ney_xyplane, Nv_xyplane);
-    ##Ix, Iy = computeCurrent(phip_next_x,phip_next_y,psix,psiy, ecurrent, lx, ly, eps_list, mu_list, invLambda2, Is1, Is2,ebound_all,Ne_x, Ne_y, Nx, ne_x,lo);
 
     phixpgrid[:,:,:,tn] = reshape(phip_next_x,ne_x,Ny,Nz);
     phiypgrid[:,:,:,tn] = reshape(phip_next_y,Nx,ne_y,Nz);
@@ -266,11 +259,7 @@ for tn = 1:Nstep
     Bxgrid[:,:,:,tn]    = reshape(Bx, Nx, ne_y, ne_z);
     Bygrid[:,:,:,tn]    = reshape(By, ne_x, Ny, ne_z);
     Bzgrid[:,:,:,tn]    = reshape(Bz, ne_x, ne_y, Nz);
-    #Ixgrid[:,:,tn]    = reshape(Ix,ne_x,Ny);
-    #Iygrid[:,:,tn]    = reshape(Iy,Nx,ne_y);
     rhogrid[:,:,:,tn]   = reshape(rho_current,Nx,Ny,Nz);
 end
 
-#return Lk, Ax_ss_grid, Ay_ss_grid, Ax_ss_vec, Ay_ss_vec;
 @save "SimulationData3.jld2" phixpgrid phiypgrid phizpgrid Bxgrid Bygrid Bzgrid rhogrid Nstep lx ly lz
-#end
