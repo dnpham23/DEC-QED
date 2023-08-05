@@ -1,5 +1,5 @@
 # Generate a rectangular cuboid mesh
-function Mesh3Dcube(xmax::Float64,xmin::Float64,ymax::Float64,ymin::Float64,zmax::Float64,zmin::Float64,Nx::Int64,Ny::Int64,Nz::Int64, ne_x::Int64,ne_y::Int64,ne_z::Int64,Ne_x::Int64,Ne_y::Int64, Ne_z::Int64, Ne::Int64,Nv::Int64,lx::Float64,ly::Float64,lz::Float64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64)
+function Mesh3Dcube(xmin::Float64,ymin::Float64,zmin::Float64,Nx::Int64,ne_x::Int64,Ne_x::Int64,Ne_y::Int64, Ne_z::Int64, Ne::Int64,Nv::Int64,lx::Float64,ly::Float64,lz::Float64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64)
 
     v = Array{Float64,2}(undef, Nv, 3);
     e = Array{Int,2}(undef, Ne, 2);
@@ -110,7 +110,7 @@ function eboundary3D(vbound::Array{Int,1},e::Array{Int,2},ne_x::Int64,ne_y::Int6
 end
 
 # Map each vertex to the edges that are attached to it
-function vemap3D(e::Array{Int,2},v::Array{Float64,2},vbound::Array{Int,1},Nx::Int64,Ny::Int64,Nz::Int64,Nv::Int64,ne_x::Int64,Ne_x::Int64, Ne_y::Int64, xtol::Float64, ytol::Float64,ztol::Float64,xmin::Float64,xmax::Float64,ymin::Float64,ymax::Float64,zmin::Float64,zmax::Float64, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
+function vemap3D(v::Array{Float64,2},Nx::Int64,Nv::Int64,ne_x::Int64,Ne_x::Int64, Ne_y::Int64, xtol::Float64, ytol::Float64,ztol::Float64,xmin::Float64,xmax::Float64,ymin::Float64,ymax::Float64,zmin::Float64,zmax::Float64, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
     v2exmap = Array{Int,2}(undef, Nv, 2);
     v2eymap = Array{Int,2}(undef, Nv, 2);
     v2ezmap = Array{Int,2}(undef, Nv, 2);    
@@ -149,7 +149,7 @@ function vemap3D(e::Array{Int,2},v::Array{Float64,2},vbound::Array{Int,1},Nx::In
     return v2exmap, v2eymap, v2ezmap;
 end
 
-function regionsort3D(e::Array{Int,2},v::Array{Float64,2},Nx::Int64,Ny::Int64,Nv::Int64,ne_x::Int64,ne_y::Int64,Ne_x::Int64,Ne_y::Int64, lx::Float64,ly::Float64,ne_scx::Int64,ne_scy::Int64,ne_scz::Int64,Ne_scx::Int64,Ne_scy::Int64,Ne_scz::Int64, Ne_sc::Int64, Ne_scx_xyplane::Int64, Ne_scy_xyplane::Int64, Ne_scz_xyplane::Int64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, ne_airx_seg::Int64, ne_airy_seg::Int64,ne_airz_seg::Int64)
+function regionsort3D(Nx::Int64,ne_x::Int64,Ne_x::Int64,Ne_y::Int64, ne_scx::Int64,Ne_scx::Int64,Ne_scy::Int64,Ne_scz::Int64, Ne_sc::Int64, Ne_scx_xyplane::Int64, Ne_scy_xyplane::Int64, Ne_scz_xyplane::Int64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, ne_airx_seg::Int64, ne_airy_seg::Int64,ne_airz_seg::Int64)
 
     #e_air = Array{Int,1}(undef, Ne_air);
     e_sc  = Array{Int,1}(undef, Ne_sc);
@@ -185,7 +185,7 @@ function regionsort3D(e::Array{Int,2},v::Array{Float64,2},Nx::Int64,Ny::Int64,Nv
     return e_sc;
 end
 
-function materials(Ne::Int64, e_sc::Array{Int,1}, mu_sc::Float64,eps_sc::Float64,mu_air::Float64,eps_air::Float64,lambda::Float64)
+function materials(Ne::Int64, e_sc::Array{Int,1}, lambda::Float64)
     #eps_list   = Array{Float64,1}(undef, Ne);
     #mu_list    = Array{Float64,1}(undef, Ne);
     invLambda2 = Array{Float64,1}(undef, Ne);

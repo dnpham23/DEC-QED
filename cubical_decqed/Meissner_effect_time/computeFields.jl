@@ -30,13 +30,10 @@ function computePhi(phix_past1::Array{Float64,1}, phiy_past1::Array{Float64,1}, 
     return phix, phiy;
 end
 
-function computeBfield3D(phix::Array{Float64,1},phiy::Array{Float64,1},phiz::Array{Float64,1},Ne::Int64, Nx::Int64, Ny::Int64, Nz::Int64,ne_x::Int64, ne_y::Int64, ne_z::Int64, lx::Float64, ly::Float64, lz::Float64,Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
+function computeBfield3D(phix::Array{Float64,1},phiy::Array{Float64,1},phiz::Array{Float64,1},Nx::Int64, Ny::Int64, Nz::Int64,ne_x::Int64, ne_y::Int64, ne_z::Int64, lx::Float64, ly::Float64, lz::Float64,Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
     N_Bx = ne_y*ne_z*Nx;
     N_By = ne_x*ne_z*Ny;
     N_Bz = ne_x*ne_y*Nz;
-    #Bx =  Array{Float64,1}(undef, N_Bx);
-    #By =  Array{Float64,1}(undef, N_By);
-    #Bz =  Array{Float64,1}(undef, N_Bz);
     Bx = zeros(Nx, ne_y, ne_z);
     By = zeros(ne_x, Ny, ne_z);
     Bz = zeros(ne_x, ne_y, Nz);
@@ -115,7 +112,7 @@ function computeCurrent(phixp::Array{Float64,1},phiyp::Array{Float64,1},psix::Ar
 end
 
 
-function computeCharge(psix::Array{Float64,1},psiy::Array{Float64,1}, ecurrent::Array{Float64,2}, lx::Float64, ly::Float64, eps::Float64, mu::Float64, lambda::Float64, Nx::Int64, Nv::Int64, rho1::Float64, v2exmap::Array{Int,2}, v2eymap::Array{Int,2},v_sc::Array{Int64,1}, Ne_x::Int64)
+function computeCharge(psix::Array{Float64,1},psiy::Array{Float64,1}, lx::Float64, ly::Float64, eps::Float64, mu::Float64, lambda::Float64, Nv::Int64, rho1::Float64, v2exmap::Array{Int,2}, v2eymap::Array{Int,2},v_sc::Array{Int64,1}, Ne_x::Int64)
     
     Nv_sc_all = length(v_sc);
     rho       = zeros(Nv,1);

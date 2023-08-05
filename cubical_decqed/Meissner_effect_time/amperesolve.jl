@@ -1,4 +1,4 @@
-function ampere_timedomain(phixpast1::Array{Float64,1},phixpast2::Array{Float64,1},phiypast1::Array{Float64,1},phiypast2::Array{Float64,1}, psixnow::Array{Float64,2},psiynow::Array{Float64,2},psixpast1::Array{Float64,1},psiypast1::Array{Float64,1}, ecurrent::Array{Float64,2}, ebound::Array{Int64,1}, dt::Float64, Ne_air::Int64, Nx::Int64,ne_x::Int64, Ne_airx::Int64, Ne_airy::Int64, Ne_x::Int64, lx::Float64, ly::Float64, eps::Float64, mu::Float64,A1::Float64,A2::Float64,e_air::Array{Int,1},e_sc::Array{Int,1},ne_airx::Int64,ne_airy::Int64)
+function ampere_timedomain(phixpast1::Array{Float64,1},phixpast2::Array{Float64,1},phiypast1::Array{Float64,1},phiypast2::Array{Float64,1}, psixnow::Array{Float64,2},psiynow::Array{Float64,2},psixpast1::Array{Float64,1},psiypast1::Array{Float64,1}, ecurrent::Array{Float64,2}, ebound::Array{Int64,1}, dt::Float64, Ne_airx::Int64, Ne_airy::Int64, Ne_x::Int64, lx::Float64, ly::Float64, eps::Float64, mu::Float64,A1::Float64,A2::Float64,e_air::Array{Int,1},e_sc::Array{Int,1},ne_airx::Int64,ne_airy::Int64)
     
     phix = zeros(Ne_airx,1);
     phiy = zeros(Ne_airy,1);
