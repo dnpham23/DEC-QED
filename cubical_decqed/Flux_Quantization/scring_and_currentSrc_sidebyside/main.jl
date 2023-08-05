@@ -168,7 +168,8 @@ vbound, xtol, ytol, ztol  = vboundary3D(v,xmax,xmin,ymax,ymin,zmax,zmin, Nv,Nx,N
 # mapping v->e and e->v
 v2exmap, v2eymap, v2ezmap = vemap3D(e,v,vbound,Nx,Ny,Nz,Nv,ne_x,Ne_x, Ne_y, xtol, ytol,ztol,xmin,xmax, ymin,ymax, zmin,zmax, Nex_xyplane, Ney_xyplane, Nv_xyplane);
 # find the edges in the sc region
-e_sc = regionsort3D_scring2(e,v,Nx,Ny,Nv,ne_x,ne_y,Ne_x,Ne_y, lx,ly,Ne_scx, Ne_scy,Ne_scz, Ne_sc, Nv_xyplane, Nex_xyplane, Ney_xyplane, ne_airx_seg_left, ne_airy_seg_bottom,ne_airz_seg_bottom, ne_scx_horblock, ne_scx_verblock, ne_scy_verblock, ne_scy_horblock, nv_sc_horblock, nv_sc_verblock, Ne_scx_xyplane, Ne_scy_xyplane);
+e_sc = regionsort3D_scring2(e,v,Nx,Ny,Nv,ne_x,ne_y,Ne_x,Ne_y, lx,ly,Ne_scx, Ne_scy,Ne_scz, Ne_sc, Nv_xyplane, Nex_xyplane, Ney_xyplane, ne_airx_seg_left, ne_airy_seg_bottom,ne_airz_seg_bottom, ne_scx_horblock, ne_scx_verblock, ne_scy_verblock, ne_scy_horblock, nv_sc_horblock, nv_sc_verblock, Ne_scx_xyplane, Ne_scy_xyplane, Nv_sc_xyplane);
+
 ebound, ebound_all  = eboundary3D(vbound,e,ne_x,ne_y,ne_z,Ne,Nx, Ny, Nz, Ne_x, Ne_y, Nex_xyplane, Ney_xyplane);
 invLambda2 = materials_scringJJ(Ne, e_sc, e_jj, lambda);
 
