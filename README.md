@@ -13,7 +13,7 @@ and the density of superconducting condensate, $\rho$,
 
 $$\frac{\partial\rho}{\partial t}  = {\bf \nabla} \cdot \Bigg[\frac{q}{m}\rho{\bf A'}  - \frac{{\bf J_{src}}}{q} \Bigg] - \frac{\partial\rho_{src}}{\partial t}.$$
 
-For numerical modeling, we employ a dual-mesh construction (primal + dual meshes), on which the continuous equations above are then transformed into equations for the coarse-grained variables $\rho(v)$ and $\Phi(e) = \int_ed{\bf \ell} \cdot {\bf A}'$, where the field $\Phi(e)$ live on the discrete edges of the discretized primal computational mesh, and $\rho(v)$ lives on the vertices of the primal mesh. This procedure is done using Discrete Exterior Calculus (DEC) [[2]](#2). A schematic of a cubial dual mesh, along with DEC operators used in our formulation is given in the following Figure:
+For numerical modeling, we employ a dual-mesh construction (primal + dual meshes), on which the continuous equations above are then transformed into equations for the coarse-grained variables $\rho(v)$ and $\Phi(e) = \int_ed{\bf \ell} \cdot {\bf A}'$, where the field $\Phi(e)$ live on the discrete edges of the discretized primal computational mesh, and $\rho(v)$ lives on the vertices of the primal mesh. This procedure is done using Discrete Exterior Calculus (DEC). A schematic of a cubial dual mesh, along with DEC operators used in our formulation is given in the following Figure:
 
 ![DEC schematics](/docs/figs/DualMesh_DEC_schematics_4.svg)
 
@@ -25,5 +25,3 @@ DEC-QED as a computational toolbox is still in early stage of development. Altho
 D. N. Pham, W. Fan, M. G. Scheer, and H. E. Tureci, [Phys. Rev. A 107, 053704](https://journals.aps.org/pra/abstract/10.1103/PhysRevA.107.053704) (2023),
 arXiv version: [arXiv:2212.12775](https://arxiv.org/abs/2212.12775) (2022).
 
-<a id="2">[2]</a> 
-A. N. Hirani, [PhD Thesis](https://www.proquest.com/docview/305342733?pq-origsite=gscholar&fromopenview=true) (2003).
