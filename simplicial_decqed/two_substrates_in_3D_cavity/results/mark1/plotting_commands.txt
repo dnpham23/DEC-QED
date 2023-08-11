@@ -1,0 +1,100 @@
+using PyPlot
+
+########
+mode_id = 4;
+absv = sqrt.(phi_vec[:,1,mode_id].^2 .+ phi_vec[:,2,mode_id].^2 .+ phi_vec[:,3,mode_id].^2);
+norm1 = matplotlib.colors.Normalize()
+rescale = 2.2e-3
+norm1.autoscale(absv/rescale)
+cm = matplotlib.cm.coolwarm
+c = [norm1(absv/rescale); repeat(norm1(absv/rescale), inner=2)]; 
+
+fig = figure()
+ax = fig[:gca](projection="3d");
+ax[:quiver](nodecoords[:,1],nodecoords[:,2],nodecoords[:,3], phi_vec[:,1,mode_id]./rescale, phi_vec[:,2,mode_id]/rescale, phi_vec[:,3,mode_id]/rescale ,color=cm(c)); xlabel("x"); ylabel("y"); zlabel("z"); title("\$ \\vec{A}'\$ field"); ax.set_box_aspect((L+2*R, 2*R, H)); ax.set_yticks([-100,0,100])
+
+########
+mode_id = 5;
+absv = sqrt.(phi_vec[:,1,mode_id].^2 .+ phi_vec[:,2,mode_id].^2 .+ phi_vec[:,3,mode_id].^2);
+norm1 = matplotlib.colors.Normalize()
+rescale = 3e-3
+norm1.autoscale(absv/rescale)
+cm = matplotlib.cm.coolwarm
+c = [norm1(absv/rescale); repeat(norm1(absv/rescale), inner=2)]; 
+
+fig = figure()
+ax = fig[:gca](projection="3d");
+ax[:quiver](nodecoords[:,1],nodecoords[:,2],nodecoords[:,3], phi_vec[:,1,mode_id]./rescale, phi_vec[:,2,mode_id]/rescale, phi_vec[:,3,mode_id]/rescale ,color=cm(c)); xlabel("x"); ylabel("y"); zlabel("z"); title("\$ \\vec{A}'\$ field"); ax.set_box_aspect((L+2*R, 2*R, H)); ax.set_yticks([-100,0,100])
+
+
+#----------------------------------------------------------------
+
+xc1 = -L/2;
+yc1 = 0;
+zc1 = -H/2;
+angle_list1 = collect(LinRange(pi/2, 3*pi/2, 30));
+x_arc1 = R*cos.(angle_list1) .+ xc1;
+y_arc1 = R*sin.(angle_list1) .+ yc1;
+z_arc1 = zc1*ones(length(angle_list1));
+plot(x_arc1, y_arc1, z_arc1, color="black",linewidth = 0.7);
+
+xc2 = L/2;
+yc2 = 0;
+zc2 = -H/2;
+angle_list2 = collect(LinRange(-pi/2, pi/2, 30));
+x_arc2 = R*cos.(angle_list2) .+ xc2;
+y_arc2 = R*sin.(angle_list2) .+ yc2;
+z_arc2 = zc2*ones(length(angle_list2));
+plot(x_arc2, y_arc2, z_arc2, color="black",linewidth = 0.7);
+
+xc3 = -L/2;
+yc3 = 0;
+zc3 = H/2;
+angle_list3 = collect(LinRange(pi/2, 3*pi/2, 30));
+x_arc3 = R*cos.(angle_list3) .+ xc3;
+y_arc3 = R*sin.(angle_list3) .+ yc3;
+z_arc3 = zc3*ones(length(angle_list3));
+plot(x_arc3, y_arc3, z_arc3, color="black",linewidth = 0.7);
+
+xc4 = L/2;
+yc4 = 0;
+zc4 = H/2;
+angle_list4 = collect(LinRange(-pi/2, pi/2, 30));
+x_arc4 = R*cos.(angle_list4) .+ xc4;
+y_arc4 = R*sin.(angle_list4) .+ yc4;
+z_arc4 = zc4*ones(length(angle_list4));
+plot(x_arc4, y_arc4, z_arc4, color="black",linewidth = 0.7);
+
+
+P1 = [-L/2, -R, -H/2];
+P2 = [-L/2-R, 0, -H/2];
+P3 = [-L/2, R, -H/2];
+P4 = [L/2, R, -H/2];
+P5 = [L/2+R, 0, -H/2];
+P6 = [L/2, -R, -H/2];
+P7 = [-L/2, -R, H/2];
+P8 = [-L/2-R, 0, H/2];
+P9 = [-L/2, R, H/2];
+P10 = [L/2, R, H/2];
+P11 = [L/2+R, 0, H/2];
+P12 = [L/2, -R, H/2];
+P13 = [-L/2, 0, -H/2];
+P14 = [L/2, 0, -H/2];
+P15 = [-L/2, 0, H/2];
+P16 = [L/2, 0, H/2];
+
+plot([P3[1], P4[1]], [P3[2], P4[2]], [P3[3], P4[3]], color="black",linewidth = 0.7);
+plot([P6[1], P1[1]], [P6[2], P1[2]], [P6[3], P1[3]], color="black",linewidth = 0.7);
+plot([P9[1], P10[1]], [P9[2], P10[2]], [P9[3], P10[3]], color="black",linewidth = 0.7);
+plot([P12[1], P7[1]], [P12[2], P7[2]], [P12[3], P7[3]], color="black",linewidth = 0.7);
+plot([P1[1], P7[1]], [P1[2], P7[2]], [P1[3], P7[3]], color="black",linewidth = 0.7);
+plot([P2[1], P8[1]], [P2[2], P8[2]], [P2[3], P8[3]], color="black",linewidth = 0.7);
+plot([P3[1], P9[1]], [P3[2], P9[2]], [P3[3], P9[3]], color="black",linewidth = 0.7);
+plot([P4[1], P10[1]], [P4[2], P10[2]], [P4[3], P10[3]], color="black",linewidth = 0.7);
+plot([P5[1], P11[1]], [P5[2], P11[2]], [P5[3], P11[3]], color="black",linewidth = 0.7);
+plot([P6[1], P12[1]], [P6[2], P12[2]], [P6[3], P12[3]], color="black",linewidth = 0.7);
+
+
+
+
+
