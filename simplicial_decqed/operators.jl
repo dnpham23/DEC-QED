@@ -20,34 +20,38 @@ function doublecurl(primalmesh::Primalmeshstruct, dualmesh::Dualmeshstruct, ebou
             for j = 1:Ne
                 kj = edgekeylist[j]
                 if (v1==kj[1])&&(v2!=kj[2]) # if the current edge and neighboring edge share v1 node
-                    facekey     = sort([v1,v2,kj[2]])
+                    facekey       = sort([v1,v2,kj[2]])
+                    primal_len_kj = primalmesh.edgedict[kj].length
                     if (facekey in facekeylist)
                         area        = primalmesh.facedict[facekey].area
                         dual_len    = dualmesh.dualedgedicts.interior_dualedgedict[facekey].length
-                        dcurl[i,j]  = -(dual_len/area)*(primal_len/dual_area) # the sign (+ or -) needs to be taken cared of to close the loop       
+                        dcurl[i,j]  = -(dual_len/area)*(primal_len_kj/dual_area) # the sign (+ or -) needs to be taken cared of to close the loop       
                         dcurl[i,i] += (dual_len/area)*(primal_len/dual_area)  # for each loop coming out of v1, add up contribution of the central edge
                     end
                 elseif (v1==kj[2])&&(v2!=kj[1]) # if the current edge and neighboring edge share v2 node
-                    facekey    = sort([v1,v2,kj[1]])
+                    facekey       = sort([v1,v2,kj[1]])
+                    primal_len_kj = primalmesh.edgedict[kj].length
                     if (facekey in facekeylist)
                         area        = primalmesh.facedict[facekey].area
                         dual_len    = dualmesh.dualedgedicts.interior_dualedgedict[facekey].length
-                        dcurl[i,j]  = (dual_len/area)*(primal_len/dual_area) # the sign (+ or -) needs to be taken cared of to close the loop
+                        dcurl[i,j]  = (dual_len/area)*(primal_len_kj/dual_area) # the sign (+ or -) needs to be taken cared of to close the loop
                         dcurl[i,i] += (dual_len/area)*(primal_len/dual_area) # for each loop coming out of v1, add up contribution of the central edge
                     end
                 elseif (v2==kj[1])&&(v1!=kj[2])
-                    facekey    = sort([v1,v2,kj[2]])
+                    facekey       = sort([v1,v2,kj[2]])
+                    primal_len_kj = primalmesh.edgedict[kj].length
                     if (facekey in facekeylist)
                         area       = primalmesh.facedict[facekey].area
                         dual_len   = dualmesh.dualedgedicts.interior_dualedgedict[facekey].length
-                        dcurl[i,j] = (dual_len/area)*(primal_len/dual_area) # the sign (+ or -) needs to be taken cared of to close the loop
+                        dcurl[i,j] = (dual_len/area)*(primal_len_kj/dual_area) # the sign (+ or -) needs to be taken cared of to close the loop
                     end
                 elseif (v2==kj[2])&&(v1!=kj[1])
                     facekey    = sort([v1,v2,kj[1]])
+                    primal_len_kj = primalmesh.edgedict[kj].length
                     if (facekey in facekeylist)
                         area       = primalmesh.facedict[facekey].area
                         dual_len   = dualmesh.dualedgedicts.interior_dualedgedict[facekey].length
-                        dcurl[i,j] = -(dual_len/area)*(primal_len/dual_area) # the sign (+ or -) needs to be taken cared of to close the loop
+                        dcurl[i,j] = -(dual_len/area)*(primal_len_kj/dual_area) # the sign (+ or -) needs to be taken cared of to close the loop
                     end
                 end
             end

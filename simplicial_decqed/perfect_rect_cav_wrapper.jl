@@ -1,4 +1,4 @@
-include("../../../gmesh_parser/dec-qed/julia_program_2/dualmesh.jl");
+include("../gmesh_parser/dualmesh.jl");
 include("utils.jl");
 include("mappings.jl");
 include("operators.jl");
