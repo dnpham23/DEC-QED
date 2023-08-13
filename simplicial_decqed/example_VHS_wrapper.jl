@@ -6,7 +6,7 @@ addprocs(num_cores)
 
 
 @everywhere begin
-    include("../gmesh_parser/dualmesh.jl");
+    include("../gmsh_parser/dualmesh.jl");
     include("sphericalmesh.jl");
     include("utils.jl");
     include("mappings.jl");
@@ -16,8 +16,8 @@ addprocs(num_cores)
 end
 
 # obtain information about primal mesh and construct the dual mesh
-primalmesh, physicalnames_dict, all_entities_struct = complete_primalmesh(raw"/hankel/meshes/cocentric_spheres_dielectric_sphere_lessdense.msh");
-dualmesh, primalmesh   = complete_dualmesh(raw"/hankel/meshes/cocentric_spheres_dielectric_sphere_lessdense.msh");
+primalmesh, _, _ = complete_primalmesh(raw"/meshes/cocentric_spheres_dielectric_sphere_2.msh");
+dualmesh, primalmesh   = complete_dualmesh(raw"/meshes/cocentric_spheres_dielectric_sphere_2.msh");
 # numerical error tolerance for coordinates of vertices
 tol = 1e-3;
 # the three spherical boundary layers and their origin 

@@ -1,13 +1,11 @@
-include("../gmesh_parser/dualmesh.jl");
+include("../gmsh_parser/dualmesh.jl");
 include("utils.jl");
 include("mappings.jl");
 include("operators.jl");
 
 # obtain information about primal mesh and construct the dual mesh
-primalmesh = complete_primalmesh(raw"/meshes/single_cube_dense.msh");
-dualmesh   = complete_dualmesh(raw"/meshes/single_cube_dense.msh");
-###primalmesh = complete_primalmesh(raw"/meshes/embedded_rectangle_normal.msh");
-###dualmesh   = complete_dualmesh(raw"/meshes/embedded_rectangle_normal.msh");
+primalmesh, physicalnames_dict, all_entities_struct = complete_primalmesh(raw"/meshes/single_rectangle_dense.msh");
+dualmesh, primalmesh = complete_dualmesh(raw"/meshes/single_rectangle_dense.msh");
 Ne         = length(primalmesh.edgedict);
 Nv         = length(primalmesh.nodedict);
 

@@ -1,12 +1,12 @@
-include("../gmesh_parser/dualmesh.jl");
+include("../gmsh_parser/dualmesh.jl");
 include("utils.jl");
 include("operators.jl");
 include("mappings.jl");
 incl
 
 # obtain information about primal mesh and construct the dual mesh
-primalmesh, physicalnames_dict, all_entities_struct = complete_primalmesh(raw"/meshes/two_JJs_on_substr_in_3d_cav.msh");
-dualmesh, primalmesh   = complete_dualmesh(raw"/meshes/two_JJs_on_substr_in_3d_cav.msh");
+primalmesh, physicalnames_dict, all_entities_struct = complete_primalmesh(raw"/meshes/two_JJs_on_substr_in_3d_cav_pp.msh");
+dualmesh, primalmesh   = complete_dualmesh(raw"/meshes/two_JJs_on_substr_in_3d_cav_pp.msh");
 Ne         = length(primalmesh.edgedict);
 Nv         = length(primalmesh.nodedict);
 
