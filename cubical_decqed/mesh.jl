@@ -1,5 +1,5 @@
 # Generate a rectangular cuboid mesh
-function Mesh3Dcube(xmax::Float64,xmin::Float64,ymax::Float64,ymin::Float64,zmax::Float64,zmin::Float64,Nx::Int64,Ny::Int64,Nz::Int64, ne_x::Int64,ne_y::Int64,ne_z::Int64,Ne_x::Int64,Ne_y::Int64, Ne_z::Int64, Ne::Int64,Nv::Int64,lx::Float64,ly::Float64,lz::Float64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64)
+function Mesh3Dcube(xmin::Float64,ymin::Float64,zmin::Float64,Nx::Int64, ne_x::Int64,Ne_x::Int64,Ne_y::Int64, Ne_z::Int64, Ne::Int64,Nv::Int64,lx::Float64,ly::Float64,lz::Float64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64)
 
     v = Array{Float64,2}(undef, Nv, 3);
     e = Array{Int,2}(undef, Ne, 2);
@@ -110,7 +110,7 @@ function eboundary3D(vbound::Array{Int,1},e::Array{Int,2},ne_x::Int64,ne_y::Int6
 end
 
 # Map each vertex to the edges that are attached to it
-function vemap3D(e::Array{Int,2},v::Array{Float64,2},vbound::Array{Int,1},Nx::Int64,Ny::Int64,Nz::Int64,Nv::Int64,ne_x::Int64,Ne_x::Int64, Ne_y::Int64, xtol::Float64, ytol::Float64,ztol::Float64,xmin::Float64,xmax::Float64,ymin::Float64,ymax::Float64,zmin::Float64,zmax::Float64, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
+function vemap3D(v::Array{Float64,2},Nx::Int64,Nv::Int64,ne_x::Int64,Ne_x::Int64, Ne_y::Int64, xtol::Float64, ytol::Float64,ztol::Float64,xmin::Float64,xmax::Float64,ymin::Float64,ymax::Float64,zmin::Float64,zmax::Float64, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
     v2exmap = Array{Int,2}(undef, Nv, 2);
     v2eymap = Array{Int,2}(undef, Nv, 2);
     v2ezmap = Array{Int,2}(undef, Nv, 2);    
@@ -147,6 +147,159 @@ function vemap3D(e::Array{Int,2},v::Array{Float64,2},vbound::Array{Int,1},Nx::In
         end
     end
     return v2exmap, v2eymap, v2ezmap;
+end
+
+function regionsort3D(Nx::Int64,ne_x::Int64,Ne_x::Int64,Ne_y::Int64,ne_scx::Int64,Ne_scx::Int64,Ne_scy::Int64,Ne_scz::Int64, Ne_sc::Int64, Ne_scx_xyplane::Int64, Ne_scy_xyplane::Int64, Ne_scz_xyplane::Int64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, ne_airx_seg::Int64, ne_airy_seg::Int64,ne_airz_seg::Int64)
+
+    #e_air = Array{Int,1}(undef, Ne_air);
+    e_sc  = Array{Int,1}(undef, Ne_sc);
+
+    # find the edges in sc
+    for i=1:Ne_scx  # find all the x-edges in sc, including the edges at interface with air
+        ie_sc_xyplane = (i-1)%Ne_scx_xyplane + 1;
+        scplane_ind   = div(i-1,Ne_scx_xyplane) + 1;
+        
+        row_num       = div(ie_sc_xyplane-1,ne_scx) + 1; # row in xy superconducting plane
+        col_num       = (ie_sc_xyplane-1)%ne_scx+1;  # column in xy superconducting plane
+        e_sc[i] = (ne_airz_seg + scplane_ind -1)*Nex_xyplane + (row_num + ne_airy_seg -1)*ne_x + (col_num + ne_airx_seg);
+    end
+
+    for i=1:Ne_scy  # find all the y-edges in sc, including the edges at interface with air
+        ie_sc_xyplane = (i-1)%Ne_scy_xyplane + 1;
+        scplane_ind   = div(i-1,Ne_scy_xyplane) + 1;
+        
+        row_num       = div(ie_sc_xyplane-1,ne_scx+1) + 1;
+        col_num       = (ie_sc_xyplane-1)%(ne_scx+1) + 1;
+        e_sc[i+Ne_scx] = Ne_x + (ne_airz_seg + scplane_ind -1)*Ney_xyplane + (row_num + ne_airy_seg -1)*Nx + (col_num + ne_airx_seg);
+    end
+
+    for i=1:Ne_scz
+        ie_sc_xyplane = (i-1)%Ne_scz_xyplane + 1;
+        scplane_ind   = div(i-1,Ne_scz_xyplane) + 1;
+        
+        row_num       = div(ie_sc_xyplane-1,ne_scx+1) + 1;
+        col_num       = (ie_sc_xyplane-1)%(ne_scx+1) + 1;
+        e_sc[i+Ne_scx+Ne_scy] = Ne_x + Ne_y + (ne_airz_seg + scplane_ind -1)*Nv_xyplane + (row_num + ne_airy_seg -1)*Nx + (col_num + ne_airx_seg);
+    end
+    
+    return e_sc;
+end
+
+function regionsort3D_scring2(e::Array{Int,2},v::Array{Float64,2},Nx::Int64,Ny::Int64,Nv::Int64,ne_x::Int64,ne_y::Int64,Ne_x::Int64,Ne_y::Int64, lx::Float64,ly::Float64, Ne_scx::Int64, Ne_scy::Int64,Ne_scz::Int64, Ne_sc::Int64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, ne_airx_seg_left::Int64, ne_airy_seg_bottom::Int64,ne_airz_seg_bottom::Int64, ne_scx_horblock::Int64, ne_scx_verblock::Int64, ne_scy_verblock::Int64, ne_scy_horblock::Int64, nv_sc_horblock::Int64, nv_sc_verblock::Int64, Ne_scx_xyplane::Int64, Ne_scy_xyplane::Int64, Nv_sc_xyplane::Int64)
+
+    #e_air = Array{Int,1}(undef, Ne_air);
+    e_sc  = Array{Int,1}(undef, Ne_sc);
+
+    # find the edges in sc
+    for iz = 1:(ne_scz+1)
+        sc_xbase = (iz-1)*Ne_scx_xyplane;
+        for i=1:ne_scx_horblock
+            rownum = div(i-1,ne_scx_len)+1;
+            colnum = (i-1)%ne_scx_len+1;
+            e_sc[sc_xbase+i] = (iz+ne_airz_seg_bottom-1)*Nex_xyplane + (rownum-1+ne_airy_seg_bottom)*ne_x + colnum + ne_airx_seg_left;
+            e_sc[sc_xbase+ne_scx_horblock+i] = (iz+ne_airz_seg_bottom-1)*Nex_xyplane + (rownum-1+ne_airy_seg_bottom+ne_scy_seg+ne_scy_inlen)*ne_x + colnum + ne_airx_seg_left;
+        end
+        
+        for i=1:ne_scx_verblock
+            rownum = div(i-1,ne_scx_seg)+1;
+            colnum = (i-1)%ne_scx_seg + 1;
+            e_sc[sc_xbase+2*ne_scx_horblock+i] = (iz+ne_airz_seg_bottom-1)*Nex_xyplane + (rownum-1+ne_scy_seg+1+ne_airy_seg_bottom)*ne_x + colnum + ne_airx_seg_left;
+            e_sc[sc_xbase+2*ne_scx_horblock+ne_scx_verblock+i] = (iz+ne_airz_seg_bottom-1)*Nex_xyplane + (rownum-1+ne_scy_seg+1+ne_airy_seg_bottom)*ne_x + colnum + ne_airx_seg_left + ne_scx_seg + ne_scx_inlen;
+        end
+        
+        sc_ybase = (iz-1)*Ne_scy_xyplane;
+        for i=1:ne_scy_verblock
+            rownum = div(i-1,ne_scx_seg+1)+1;
+            colnum = (i-1)%(ne_scx_seg+1)+1;
+            e_sc[Ne_scx+sc_ybase+i] = Ne_x + (iz+ne_airz_seg_bottom-1)*Ney_xyplane + (rownum+ne_airy_seg_bottom-1)*Nx + colnum + ne_airx_seg_left;
+            e_sc[Ne_scx+sc_ybase+ne_scy_verblock+i] = Ne_x + (iz+ne_airz_seg_bottom-1)*Ney_xyplane + (rownum+ne_airy_seg_bottom-1)*Nx + colnum + ne_airx_seg_left + ne_scx_seg + ne_scx_inlen;
+        end
+        
+        for i=1:ne_scy_horblock
+            rownum = div(i-1,ne_scx_inlen-1)+1;
+            colnum = (i-1)%(ne_scx_inlen-1)+1;
+            e_sc[Ne_scx+sc_ybase+2*ne_scy_verblock+i] = Ne_x + (iz+ne_airz_seg_bottom-1)*Ney_xyplane + (rownum-1+ne_airy_seg_bottom)*Nx + colnum + ne_airx_seg_left + ne_scx_seg + 1;
+            e_sc[Ne_scx+sc_ybase+2*ne_scy_verblock+ne_scy_horblock+i] = Ne_x + (iz+ne_airz_seg_bottom-1)*Ney_xyplane + (rownum-1+ne_airy_seg_bottom+ne_scy_seg+ne_scy_inlen)*Nx + colnum + ne_airx_seg_left + ne_scx_seg + 1;
+        end
+    end
+    
+    for iz = 1:ne_scz
+        sc_zbase = (iz-1)*Nv_sc_xyplane;
+        for i = 1:nv_sc_horblock
+            rownum = div(i-1,ne_scx_len+1)+1;
+            colnum = (i-1)%(ne_scx_len+1) + 1;
+            e_sc[Ne_scx+Ne_scy+sc_zbase+i] = Ne_x + Ne_y + (iz+ne_airz_seg_bottom-1)*Nv_xyplane + (rownum-1+ne_airy_seg_bottom)*Nx + colnum + ne_airx_seg_left;
+            e_sc[Ne_scx+Ne_scy+sc_zbase+nv_sc_horblock+i] = Ne_x + Ne_y + (iz+ne_airz_seg_bottom-1)*Nv_xyplane + (rownum-1+ne_airy_seg_bottom+ne_scy_seg+ne_scy_inlen)*Nx + colnum + ne_airx_seg_left;
+        end
+        
+        for i = 1:nv_sc_verblock
+            rownum = div(i-1,ne_scx_seg+1)+1;
+            colnum = (i-1)%(ne_scx_seg+1)+1;
+            e_sc[Ne_scx+Ne_scy+sc_zbase+2*nv_sc_horblock+i] = Ne_x + Ne_y + (iz+ne_airz_seg_bottom-1)*Nv_xyplane + (rownum-1+ne_scy_seg+1+ne_airy_seg_bottom)*Nx + colnum + ne_airx_seg_left;
+            e_sc[Ne_scx+Ne_scy+sc_zbase+2*nv_sc_horblock+nv_sc_verblock+i] = Ne_x + Ne_y + (iz+ne_airz_seg_bottom-1)*Nv_xyplane + (rownum-1+ne_scy_seg+1+ne_airy_seg_bottom)*Nx + colnum + ne_airx_seg_left + ne_scx_seg + ne_scx_inlen;
+        end
+    end
+    
+    return e_sc;
+end
+
+
+function regionsort3D_scring(e::Array{Int,2},v::Array{Float64,2},Nx::Int64,Ny::Int64,Nv::Int64,ne_x::Int64,ne_y::Int64,Ne_x::Int64,Ne_y::Int64, lx::Float64,ly::Float64, Ne_scx::Int64, Ne_scy::Int64,Ne_scz::Int64, Ne_sc::Int64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, ne_airx_seg::Int64, ne_airy_seg::Int64,ne_airz_seg::Int64, ne_scx_horblock::Int64, ne_scx_verblock::Int64, ne_scy_verblock::Int64, ne_scy_horblock::Int64, nv_sc_horblock::Int64, nv_sc_verblock::Int64, Ne_scx_xyplane::Int64, Ne_scy_xyplane::Int64, Nv_sc_xyplane::Int64)
+
+    #e_air = Array{Int,1}(undef, Ne_air);
+    e_sc  = Array{Int,1}(undef, Ne_sc);
+
+    # find the edges in sc
+    for iz = 1:(ne_scz+1)
+        sc_xbase = (iz-1)*Ne_scx_xyplane;
+        for i=1:ne_scx_horblock
+            rownum = div(i-1,ne_scx_len)+1;
+            colnum = (i-1)%ne_scx_len+1;
+            e_sc[sc_xbase+i] = (iz+ne_airz_seg-1)*Nex_xyplane + (rownum-1+ne_airy_seg)*ne_x + colnum + ne_airx_seg;
+            e_sc[sc_xbase+ne_scx_horblock+i] = (iz+ne_airz_seg-1)*Nex_xyplane + (rownum-1+ne_airy_seg+ne_scy_seg+ne_scy_inlen)*ne_x + colnum + ne_airx_seg;
+        end
+        
+        for i=1:ne_scx_verblock
+            rownum = div(i-1,ne_scx_seg)+1;
+            colnum = (i-1)%ne_scx_seg + 1;
+            e_sc[sc_xbase+2*ne_scx_horblock+i] = (iz+ne_airz_seg-1)*Nex_xyplane + (rownum-1+ne_scy_seg+1+ne_airy_seg)*ne_x + colnum + ne_airx_seg;
+            e_sc[sc_xbase+2*ne_scx_horblock+ne_scx_verblock+i] = (iz+ne_airz_seg-1)*Nex_xyplane + (rownum-1+ne_scy_seg+1+ne_airy_seg)*ne_x + colnum + ne_airx_seg + ne_scx_seg + ne_scx_inlen;
+        end
+        
+        sc_ybase = (iz-1)*Ne_scy_xyplane;
+        for i=1:ne_scy_verblock
+            rownum = div(i-1,ne_scx_seg+1)+1;
+            colnum = (i-1)%(ne_scx_seg+1)+1;
+            e_sc[Ne_scx+sc_ybase+i] = Ne_x + (iz+ne_airz_seg-1)*Ney_xyplane + (rownum+ne_airy_seg-1)*Nx + colnum + ne_airx_seg;
+            e_sc[Ne_scx+sc_ybase+ne_scy_verblock+i] = Ne_x + (iz+ne_airz_seg-1)*Ney_xyplane + (rownum+ne_airy_seg-1)*Nx + colnum + ne_airx_seg + ne_scx_seg + ne_scx_inlen;
+        end
+        
+        for i=1:ne_scy_horblock
+            rownum = div(i-1,ne_scx_inlen-1)+1;
+            colnum = (i-1)%(ne_scx_inlen-1)+1;
+            e_sc[Ne_scx+sc_ybase+2*ne_scy_verblock+i] = Ne_x + (iz+ne_airz_seg-1)*Ney_xyplane + (rownum-1+ne_airy_seg)*Nx + colnum + ne_airx_seg + ne_scx_seg + 1;
+            e_sc[Ne_scx+sc_ybase+2*ne_scy_verblock+ne_scy_horblock+i] = Ne_x + (iz+ne_airz_seg-1)*Ney_xyplane + (rownum-1+ne_airy_seg+ne_scy_seg+ne_scy_inlen)*Nx + colnum + ne_airx_seg + ne_scx_seg + 1;
+        end
+    end
+    
+    for iz = 1:ne_scz
+        sc_zbase = (iz-1)*Nv_sc_xyplane;
+        for i = 1:nv_sc_horblock
+            rownum = div(i-1,ne_scx_len+1)+1;
+            colnum = (i-1)%(ne_scx_len+1) + 1;
+            e_sc[Ne_scx+Ne_scy+sc_zbase+i] = Ne_x + Ne_y + (iz+ne_airz_seg-1)*Nv_xyplane + (rownum-1+ne_airy_seg)*Nx + colnum + ne_airx_seg;
+            e_sc[Ne_scx+Ne_scy+sc_zbase+nv_sc_horblock+i] = Ne_x + Ne_y + (iz+ne_airz_seg-1)*Nv_xyplane + (rownum-1+ne_airy_seg+ne_scy_seg+ne_scy_inlen)*Nx + colnum + ne_airx_seg;
+        end
+        
+        for i = 1:nv_sc_verblock
+            rownum = div(i-1,ne_scx_seg+1)+1;
+            colnum = (i-1)%(ne_scx_seg+1)+1;
+            e_sc[Ne_scx+Ne_scy+sc_zbase+2*nv_sc_horblock+i] = Ne_x + Ne_y + (iz+ne_airz_seg-1)*Nv_xyplane + (rownum-1+ne_scy_seg+1+ne_airy_seg)*Nx + colnum + ne_airx_seg;
+            e_sc[Ne_scx+Ne_scy+sc_zbase+2*nv_sc_horblock+nv_sc_verblock+i] = Ne_x + Ne_y + (iz+ne_airz_seg-1)*Nv_xyplane + (rownum-1+ne_scy_seg+1+ne_airy_seg)*Nx + colnum + ne_airx_seg + ne_scx_seg + ne_scx_inlen;
+        end
+    end
+    
+    return e_sc;
 end
 
 function regionsort3D_cav(e::Array{Int,2},v::Array{Float64,2},Nx::Int64,Ny::Int64,Nv::Int64,ne_x::Int64,ne_y::Int64,Ne_x::Int64,Ne_y::Int64, lx::Float64,ly::Float64, ne_airx::Int64, ne_airy::Int64, ne_airz::Int64, Ne_airx::Int64, Ne_airy::Int64,  Ne_airz::Int64, Ne_air::Int64, Ne_airx_xyplane::Int64, Ne_airy_xyplane::Int64, Ne_airz_xyplane::Int64, Ne_airx_xzplane::Int64, Ne_airz_xzplane::Int64, Ne_airy_yzplane::Int64, Ne_airz_yzplane::Int64, Ne_scx::Int64, Ne_scy::Int64, Ne_scz::Int64, Ne_sc::Int64, Nv_xyplane::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, ne_scx_seg::Int64, ne_scy_seg::Int64,ne_scz_seg::Int64)
@@ -255,11 +408,22 @@ function regionsort3D_cav(e::Array{Int,2},v::Array{Float64,2},Nx::Int64,Ny::Int6
     return e_sc, e_air;
 end
 
-
-function materials_3Dcav(Ne::Int64, e_sc::Array{Int,1}, lambda::Float64)
+function materials(Ne::Int64, e_sc::Array{Int,1}, lambda::Float64)
     invLambda2 = Array{Float64,1}(undef, Ne);
     for i = 1:Ne
         if (i in e_sc)
+            invLambda2[i] = 1/lambda^2;
+        else
+            invLambda2[i] = 0.0;
+        end
+    end
+    return invLambda2;
+end
+
+function materials_scringJJ(Ne::Int64, e_sc::Array{Int,1}, e_jj::Array{Int,1}, lambda::Float64)
+    invLambda2 = Array{Float64,1}(undef, Ne);
+    for i = 1:Ne
+        if (i in e_sc)&&(!(i in e_jj))
             invLambda2[i] = 1/lambda^2;
         else
             invLambda2[i] = 0.0;

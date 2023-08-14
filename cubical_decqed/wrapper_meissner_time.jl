@@ -1,5 +1,5 @@
 using JLD2;
-include("mesh.jl"); include("tree.jl"); include("utils.jl"); include("linsolve.jl"); include("amperesolve.jl");include("amperesolve_delta.jl"); include("plotting.jl"); include("computeFields.jl");
+include("mesh.jl"); include("tree.jl"); include("utils.jl"); include("linsolve.jl"); include("amperesolve.jl");include("amperesolve_delta.jl"); include("computeFields.jl");
 
 xmax =  2000.0;
 xmin = -2000.0;

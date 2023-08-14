@@ -1,6 +1,6 @@
 using JLD2;
 using IterativeSolvers;
-include("mesh.jl"); include("tree.jl"); include("utils.jl"); include("linsolve.jl"); include("amperesolve.jl");include("amperesolve_delta.jl"); include("plotting.jl"); include("computeFields.jl");
+include("mesh.jl"); include("tree.jl"); include("utils.jl"); include("linsolve.jl"); include("amperesolve.jl");include("amperesolve_delta.jl"); include("computeFields.jl");
 
 xmax =  20.0;
 xmin = -20.0;
@@ -189,9 +189,9 @@ currentamp[2*ne_per_ring+2*ne_x_loop+ne_y_loop+1 : 3*ne_per_ring] = J*ones(ne_y_
 
 e,v  = Mesh3Dcube(xmin,ymin,zmin,Nx,ne_x,Ne_x,Ne_y, Ne_z, Ne,Nv,lx,ly,lz, Nv_xyplane, Nex_xyplane, Ney_xyplane);
 vbound, xtol, ytol, ztol  = vboundary3D(v,xmax,xmin,ymax,ymin,zmax,zmin, Nv,Nx,Ny,Nv_xyplane);
-v2exmap, v2eymap, v2ezmap = vemap3D(e,v,vbound,Nx,Ny,Nz,Nv,ne_x,Ne_x, Ne_y, xtol, ytol,ztol,xmin,xmax,ymin,ymax,zmin,zmax, Nex_xyplane, Ney_xyplane, Nv_xyplane);
-e_sc       = regionsort3D(e,v,Nx,Ny,Nv,ne_x,ne_y,Ne_x,Ne_y, lx,ly,ne_scx,ne_scy,ne_scz,Ne_scx,Ne_scy,Ne_scz, Ne_sc, Ne_scx_xyplane, Ne_scy_xyplane, Ne_scz_xyplane, Nv_xyplane, Nex_xyplane, Ney_xyplane, ne_airx_seg, ne_airy_seg,ne_airz_seg);
-ebound     = eboundary3D(vbound,e,ne_x,ne_y,ne_z,Ne,Nx, Ny, Nz, Ne_x, Ne_y, Nex_xyplane, Ney_xyplane);
+v2exmap, v2eymap, v2ezmap = vemap3D(v,Nx,Nv,ne_x,Ne_x, Ne_y, xtol, ytol,ztol,xmin,xmax,ymin,ymax,zmin,zmax, Nex_xyplane, Ney_xyplane, Nv_xyplane);
+e_sc       = regionsort3D(Nx,ne_x,Ne_x,Ne_y, ne_scx,Ne_scx,Ne_scy,Ne_scz, Ne_sc, Ne_scx_xyplane, Ne_scy_xyplane, Ne_scz_xyplane, Nv_xyplane, Nex_xyplane, Ney_xyplane, ne_airx_seg, ne_airy_seg,ne_airz_seg);
+ebound,_   = eboundary3D(vbound,e,ne_x,ne_y,ne_z,Ne,Nx, Ny, Nz, Ne_x, Ne_y, Nex_xyplane, Ney_xyplane);
 invLambda2 = materials(Ne, e_sc, lambda);
 
 tree       = stree3D(ne_x,Nbranch,Ney_xyplane,Ne_x,Ne_y, Ne_z);

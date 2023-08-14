@@ -30,7 +30,7 @@ function computePhi(phix_past1::Array{Float64,1}, phiy_past1::Array{Float64,1}, 
     return phix, phiy;
 end
 
-function computeBfield3D(phix::Array{Float64,1},phiy::Array{Float64,1},phiz::Array{Float64,1},Ne::Int64, Nx::Int64, Ny::Int64, Nz::Int64,ne_x::Int64, ne_y::Int64, ne_z::Int64, lx::Float64, ly::Float64, lz::Float64,Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
+function computeBfield3D(phix::Array{Float64,1},phiy::Array{Float64,1},phiz::Array{Float64,1},Nx::Int64, Ny::Int64, Nz::Int64,ne_x::Int64, ne_y::Int64, ne_z::Int64, lx::Float64, ly::Float64, lz::Float64,Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
     N_Bx = ne_y*ne_z*Nx;
     N_By = ne_x*ne_z*Ny;
     N_Bz = ne_x*ne_y*Nz;
@@ -81,7 +81,7 @@ function computeBfield3D(phix::Array{Float64,1},phiy::Array{Float64,1},phiz::Arr
     return Bx ,By, Bz;
 end
 
-function computeCurrent(phixp::Array{Float64,1},phiyp::Array{Float64,1},psix::Array{Float64,1},psiy::Array{Float64,1}, ecurrent::Array{Float64,2}, lx::Float64, ly::Float64, eps_list::Array{Float64,1}, mu_list::Array{Float64,1}, invLambda2::Array{Float64,1}, Is1::Float64, Is2::Float64,ebound_all::Array{Int64,1},Ne_x::Int64, Ne_y::Int64, Nx::Int64, ne_x::Int64, lo::Float64)
+function computeCurrent(phixp::Array{Float64,1},phiyp::Array{Float64,1},psix::Array{Float64,1},psiy::Array{Float64,1}, ecurrent::Array{Float64,2}, lx::Float64, ly::Float64, invLambda2::Array{Float64,1}, Is1::Float64, Is2::Float64,ebound_all::Array{Int64,1},Ne_x::Int64, Ne_y::Int64, Nx::Int64, ne_x::Int64, lo::Float64)
     Ix = zeros(Ne_x,1);
     Iy = zeros(Ne_y,1);
 
@@ -141,4 +141,54 @@ function computeCharge(psix::Array{Float64,1},psiy::Array{Float64,1}, ecurrent::
         rho[ind] = -temp*rho1*(eps*mu*lambda^2);
     end
     return rho;
+end
+
+function computeCurrent_JJ3D(phixp::Array{Float64,1},phiyp::Array{Float64,1}, phizp::Array{Float64,1}, rho_list::Array{Float64,1}, ecurrent::Array{Float64,2}, ecurrentJJ::Array{Float64,2}, lx::Float64, ly::Float64, lz::Float64, invLambda2::Array{Float64,1}, Is1::Float64, Is3::Float64,ebound_all::Array{Int64,1}, Ne_x::Int64, Ne_y::Int64, Ne_z::Int64, Nx::Int64, ne_x::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
+    Ix = zeros(Ne_x,1);
+    Iy = zeros(Ne_y,1);
+    Iz = zeros(Ne_z,1);
+
+    for xind=1:Ne_x
+        if !(xind in ebound_all)
+            ie_xyplane = (xind-1)%Nex_xyplane + 1;
+            plane_ind  = div(xind-1,Nex_xyplane) + 1;
+            rownum     = div(ie_xyplane-1,ne_x) + 1; # column in the xy plane
+            colnum     = (ie_xyplane-1)%ne_x + 1;    # row in the xy plane
+            vind_left  = (plane_ind-1)*Nv_xyplane + (rownum-1)*Nx + colnum;
+            vind_right = vind_left + 1;
+            rho_avg    = 0.5*(rho_list[vind_left] + rho_list[vind_right]);
+            
+            Ix[xind] = -(Is1*invLambda2[xind] + Is3*rho_avg)*phixp[xind]/lx + ecurrent[xind] + ecurrentJJ[xind];
+        end
+    end
+    
+    for yind=1:Ne_y
+        real_yind = yind + Ne_x;
+        if !(real_yind in ebound_all)
+            ie_xyplane  = (yind-1)%Ney_xyplane + 1;
+            plane_ind   = div(yind-1,Ney_xyplane) + 1;
+            rownum      = div(ie_xyplane-1,Nx) + 1; # column in the xy plane
+            colnum      = (ie_xyplane-1)%Nx + 1;    # row in the xy plane
+            vind_ybelow = (plane_ind-1)*Nv_xyplane + (rownum-1)*Nx + colnum;
+            vind_yabove = vind_ybelow + Nx;
+            rho_avg     = 0.5*(rho_list[vind_ybelow] + rho_list[vind_yabove]);
+      
+            Iy[yind] = -(Is1*invLambda2[real_yind] + Is3*rho_avg)*phiyp[yind]/ly + ecurrent[real_yind] + ecurrentJJ[real_yind];
+        end
+    end
+    
+    for zind=1:Ne_z
+        real_zind = zind + Ne_x + Ne_y;
+        if !(real_zind in ebound_all)
+            ie_xyplane  = (zind-1)%Nv_xyplane + 1;
+            plane_ind   = div(zind-1,Nv_xyplane) + 1;
+            rownum      = div(ie_xyplane-1,Nx) + 1; # column in the xy plane
+            colnum      = (ie_xyplane-1)%Nx + 1;    # row in the xy plane
+            vind_zbelow = zind;
+            vind_zabove = vind_zbelow + Nv_xyplane;
+            rho_avg     = 0.5*(rho_list[vind_zbelow] + rho_list[vind_zabove]);
+            Iz[zind] = -(Is1*invLambda2[real_zind] + Is3*rho_avg)*phizp[zind]/lz + ecurrent[real_zind] + ecurrentJJ[real_zind];
+        end
+    end
+    return Ix, Iy, Iz;
 end

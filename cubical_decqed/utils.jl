@@ -1,20 +1,14 @@
 function reducedMat(tree::Array{Int,1},Ne::Int64,Nbranch::Int64,ne_x::Int64,ne_y::Int64,Ne_x::Int64,Nx::Int64)
-    #x = Array{Float64,2}(undef, Ne, nbranch);
     x = zeros(Ne, Nbranch);
     lastbranch = tree[Nbranch];
     for i = 1:Ne
         isbranch = findfirst(isequal(i),tree);
         colnum = (i-1)%ne_x + 1;
-        if  isbranch != nothing  # if this edge is a branch of tree
+        if  isbranch !== nothing  # if this edge is a branch of tree
             x[i,isbranch] = 1;
         elseif lastbranch < i # if this edge is in the last row of branches (that was not in tree)
             colnum = (i-Ne_x-1)%Nx + 1; 
             x[i,colnum] = 1; # this is to impose zero BC for this edge
-            #for j = 1:(ne_y-1)
-            #    iremain = (i-Ne_x-1)%Nx + 1;
-            #    btemp   = ne_x + (j-1)*Nx + iremain;
-            #    x[i,btemp] = -1;
-            #end
         elseif (i < (Ne_x-ne_x))&&(colnum != 1)&&(colnum != ne_x)   # if this edge is not a branch, and it is not at the boundary
             rownum = div(i-1,ne_x) + 1;
             colnum = (i-1)%ne_x + 1;
@@ -60,7 +54,6 @@ function GaussMat(v2exmap::Array{Int,2},v2eymap::Array{Int,2},Nv::Int64,Ne::Int6
 end
 
 function charge(v::Array{Float64,2},chargeloc::Array{Float64,2},chargeamp::Array{Float64,1},xtol::Float64,ytol::Float64,Nv::Int64,Nx::Int64, eps_air::Float64,eps_sc::Float64,psixpast1::Array{Float64,1},psiypast1::Array{Float64,1},phixp_past1::Array{Float64,1},phiyp_past1::Array{Float64,1}, v2exmap::Array{Int,2},v2eymap::Array{Int,2},v_sc::Array{Int,1},Nv_sc::Int64,A2::Float64,G1::Float64,G2::Float64,dt::Float64, mu_sc::Float64, lambda::Float64,lx::Float64,ly::Float64, e_scx::Array{Int,1}, e_scy::Array{Int,1},ne_scx_seg::Int64, ne_scy_seg::Int64, v_interface::Array{Int,1},Ne_x::Int64)
-    #ytol = xtol*1.0;
     numcharge = length(chargeloc[:,1]);
     vcharge = zeros(Nv,1);
     for i = 1:numcharge
@@ -79,7 +72,6 @@ end
 
 
 function charge2(v::Array{Float64,2},chargeloc::Array{Float64,2},chargeamp::Array{Float64,1},xtol::Float64,ytol::Float64,Nv::Int64, Nx::Int64, eps_air::Float64,eps_sc::Float64,psixpast1::Array{Float64,1},psiypast1::Array{Float64,1},phixp_past1::Array{Float64,1}, phiyp_past1::Array{Float64,1}, v2exmap::Array{Int,2},v2eymap::Array{Int,2},A2::Float64,G1::Float64, G2::Float64, dt::Float64, mu_sc::Float64, lambda::Float64,lx::Float64,ly::Float64, Ne_x::Int64,v_sc::Array{Int,1})
-    #ytol = xtol*1.0;
     numcharge = length(chargeloc[:,1]);
     vcharge = zeros(Nv,1);
     for i = 1:numcharge
@@ -144,7 +136,6 @@ end
 
 
 function charge3(v::Array{Float64,2},chargeloc::Array{Float64,2},chargeamp::Array{Float64,1},xtol::Float64,ytol::Float64,Nv::Int64, Nx::Int64, eps_air::Float64,eps_sc::Float64,psixpast1::Array{Float64,1},psiypast1::Array{Float64,1},phixp_past1::Array{Float64,1}, phiyp_past1::Array{Float64,1}, v2exmap::Array{Int,2},v2eymap::Array{Int,2},v_sc::Array{Int,1},Nv_sc::Int64,A2::Float64,G1::Float64, G2::Float64, dt::Float64, mu_sc::Float64, lambda::Float64,lx::Float64,ly::Float64, e_scx::Array{Int,1}, e_scy::Array{Int,1},ne_scx_seg::Int64, ne_scy_seg::Int64, v_interface::Array{Int,1},Ne_x::Int64)
-    #ytol = xtol*1.0;
     numcharge = length(chargeloc[:,1]);
     vcharge = zeros(Nv,1);
     for i = 1:numcharge
@@ -239,6 +230,19 @@ function current3D(v::Array{Float64,2},currentloc::Array{Float64,3},currentamp::
     return ecurrent;
 end
 
+function currentJJ(e_jj::Array{Int,1},phiyp_past1::Array{Float64,1},Ne_x::Int64, Ne_y::Int64, e::Array{Int,2}, Jc::Float64)
+    ecurrentJJ = zeros(Ne,1);
+    
+    # only go over the yedge because we choose the JJ to be along yedges
+    for i = 1:Ne_y
+        real_yind = i+Ne_x;
+        if (real_yind in e_jj) 
+            ecurrentJJ[real_yind] = Jc*sin(2*pi*phiyp_past1[i]);
+        end
+    end
+    return ecurrentJJ;
+end
+
 function Ampere_AMat3D(S4::Float64,dt::Float64,Ne::Int64,ne_x::Int64, Nx::Int64,Ne_x::Int64,Ne_y::Int64,ebound::Array{Int64,1}, e_sc::Array{Int,1}, lx::Float64,ly::Float64,lz::Float64,Ny::Int64,ne_y::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
 
     AMat = zeros(Ne, Ne);
@@ -325,7 +329,7 @@ function Ampere_BMat(dt::Float64,Ne::Int64,Nx::Int64, Ny::Int64,ne_x::Int64,ebou
     return BMat;
 end
 
-function Ampere_Ccol3D(J1::Float64, S1::Float64, S2::Float64, S4::Float64, S5::Float64, dt::Float64,ne_x::Int64, ne_y::Int64, Nx::Int64, Ne_x::Int64, Ne_y::Int64, ebound_all::Array{Int64,1}, phixp_past1::Array{Float64,1}, phiyp_past1::Array{Float64,1}, phizp_past1::Array{Float64,1}, phixp_past2::Array{Float64,1}, phiyp_past2::Array{Float64,1}, phizp_past2::Array{Float64,1}, rho_past1::Array{Float64,1}, e_sc::Array{Int,1}, Ny::Int64, lx::Float64, ly::Float64, lz::Float64, invLambda2::Array{Float64,1},Ne::Int64, ecurrent::Array{Float64,2}, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64, e::Array{Int,2})
+function Ampere_Ccol3D_2(J1::Float64, S1::Float64, S2::Float64, S4::Float64, S5::Float64, dt::Float64,ne_x::Int64, ne_y::Int64, Nx::Int64, Ne_x::Int64, Ne_y::Int64, ebound_all::Array{Int64,1}, phixp_past1::Array{Float64,1}, phiyp_past1::Array{Float64,1}, phizp_past1::Array{Float64,1}, phixp_past2::Array{Float64,1}, phiyp_past2::Array{Float64,1}, phizp_past2::Array{Float64,1}, rho_past1::Array{Float64,1}, e_sc::Array{Int,1}, Ny::Int64, lx::Float64, ly::Float64, lz::Float64, invLambda2::Array{Float64,1},Ne::Int64, ecurrent::Array{Float64,2}, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64, e::Array{Int,2}, ecurrentJJ::Array{Float64,2})
 
     Ccol = zeros(Ne,1);
     
@@ -373,7 +377,7 @@ function Ampere_Ccol3D(J1::Float64, S1::Float64, S2::Float64, S4::Float64, S5::F
                 temp5   = 0.0;
             end
             
-            Ccol[xind] = temp1+temp2+temp5+temp4+leftover - J1*lx/(ly*lz)*ecurrent[xind];                
+            Ccol[xind] = temp1+temp2+temp5+temp4+leftover - J1*lx/(ly*lz)*(ecurrent[xind]+ecurrentJJ[xind]);               
         end
     end
 
@@ -423,7 +427,7 @@ function Ampere_Ccol3D(J1::Float64, S1::Float64, S2::Float64, S4::Float64, S5::F
                 temp5   = 0.0;
             end
             
-            Ccol[real_yind] = temp1+temp2+temp5+temp4+leftover - J1*ly/(lx*lz)*ecurrent[real_yind];
+            Ccol[real_yind] = temp1+temp2+temp5+temp4+leftover - J1*ly/(lx*lz)*(ecurrent[real_yind]+ecurrentJJ[real_yind]);
         end
     end
     
@@ -473,7 +477,7 @@ function Ampere_Ccol3D(J1::Float64, S1::Float64, S2::Float64, S4::Float64, S5::F
                 temp5   = 0.0;
             end
             
-            Ccol[real_zind] = temp1+temp2+temp5+temp4+leftover - J1*lz/(lx*ly)*ecurrent[real_zind];
+            Ccol[real_zind] = temp1+temp2+temp5+temp4+leftover - J1*lz/(lx*ly)*(ecurrent[real_zind]+ecurrentJJ[real_zind]);
         end
     end
     
@@ -552,7 +556,7 @@ function Ampere_Kcol(AMat::Array{Float64,2},BMat::Array{Float64,2},Ccol::Array{F
     return Kcol;
 end
 
-function SteadyState_HMat_3D(Is1::Float64,Ne::Int64,ne_x::Int64,Nx::Int64,Ne_x::Int64,Ne_y::Int64,ebound::Array{Int64,1}, lx::Float64,ly::Float64,lz::Float64,Ny::Int64,ne_y::Int64,invLambda2::Array{Float64,1},Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
+function SteadyState_HMat_3D(Is1::Float64,Ne::Int64,ne_x::Int64,Nx::Int64,Ne_x::Int64,Ne_y::Int64,ebound::Array{Int64,1}, lx::Float64,ly::Float64,lz::Float64,invLambda2::Array{Float64,1},Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
     HMat = zeros(Ne,Ne);
     for xind=1:Ne_x
         if !(xind in ebound)
@@ -695,7 +699,7 @@ function SteadyState_Kcol(ecurrent::Array{Float64,2},lx::Float64,ly::Float64, lz
     return Kcol;
 end
 
-function reducedPhiMat3D(tree::Array{Int,1},Ne::Int64,Nbranch::Int64,ne_x::Int64,ne_y::Int64,ne_z::Int64, Ne_x::Int64, Ne_y::Int64, Nx::Int64,Ny::Int64, Nz::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
+function reducedPhiMat3D(Ne::Int64,ne_x::Int64,ne_y::Int64,ne_z::Int64, Ne_x::Int64, Ne_y::Int64, Nx::Int64,Ny::Int64, Nz::Int64, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64)
     Nx_reducedPhi = ne_x*ne_y + ne_x*Ny*ne_z;
     Ny_reducedPhi = ne_y*Nx*ne_z;
     Nreduced = Nx_reducedPhi + Ny_reducedPhi;
@@ -716,7 +720,6 @@ function reducedPhiMat3D(tree::Array{Int,1},Ne::Int64,Nbranch::Int64,ne_x::Int64
     end
     
     # now, the first row of x-edges (these edges are tree branches)
-    #for i = 2:ne_x-1
     for i = 1:ne_x
         # first consider the edges in the first xy plane
         for j = 1:ne_y
@@ -929,4 +932,161 @@ function reducedPhiMat3D(tree::Array{Int,1},Ne::Int64,Nbranch::Int64,ne_x::Int64
     end
     
     return z;
+end
+
+
+function Ampere_Ccol3D(J1::Float64, S1::Float64, S2::Float64, S4::Float64, S5::Float64, dt::Float64,ne_x::Int64, ne_y::Int64, Nx::Int64, Ne_x::Int64, Ne_y::Int64, ebound_all::Array{Int64,1}, phixp_past1::Array{Float64,1}, phiyp_past1::Array{Float64,1}, phizp_past1::Array{Float64,1}, phixp_past2::Array{Float64,1}, phiyp_past2::Array{Float64,1}, phizp_past2::Array{Float64,1}, rho_past1::Array{Float64,1}, e_sc::Array{Int,1}, Ny::Int64, lx::Float64, ly::Float64, lz::Float64, invLambda2::Array{Float64,1},Ne::Int64, ecurrent::Array{Float64,2}, Nex_xyplane::Int64, Ney_xyplane::Int64, Nv_xyplane::Int64, e::Array{Int,2})
+
+    Ccol = zeros(Ne,1);
+    
+    ### x edge loop
+    for xind=1:Ne_x
+        if !(xind in ebound_all)
+            ie_xyplane = (xind-1)%Nex_xyplane + 1;
+            plane_ind  = div(xind-1,Nex_xyplane) + 1;
+            rownum     = div(ie_xyplane-1,ne_x) + 1; # column in the xy plane
+            colnum     = (ie_xyplane-1)%ne_x + 1;    # row in the xy plane
+            
+            xedge_y_below     = xind - ne_x; # the xedge below (in y direction) the current xedge
+            xedge_y_above     = xind + ne_x; # the xedge above (in y direction) the current xedge           
+            y_edge_belowleft  = (rownum-2)*Nx + colnum + (plane_ind-1)*Ney_xyplane; # yedge to the left and one row below the current xedge
+            y_edge_belowright = y_edge_belowleft + 1; # the yedge below and to the right
+            y_edge_aboveleft  = y_edge_belowleft + Nx;# the yedge above and to the left
+            y_edge_aboveright = y_edge_belowleft + Nx+1;# the yedge above and to the right
+            
+            xedge_z_below     = xind - Nex_xyplane; # the xedge below (in z direction) the current xedge
+            xedge_z_above     = xind + Nex_xyplane; # the xedge above (in z direction) the current xedge
+            z_edge_belowleft  = (rownum-1)*Nx + colnum + (plane_ind-2)*Nv_xyplane; # zedge to the left and one row below the current xedge
+            z_edge_belowright = z_edge_belowleft + 1;
+            z_edge_aboveleft  = z_edge_belowleft + Nv_xyplane;
+            z_edge_aboveright = z_edge_aboveleft + 1;
+    
+            temp1    = (S1/ly^2)*(-phixp_past1[xedge_y_below] + 2*phixp_past1[xind] -phixp_past1[xedge_y_above] + phiyp_past1[y_edge_belowleft] - phiyp_past1[y_edge_belowright] - phiyp_past1[y_edge_aboveleft] + phiyp_past1[y_edge_aboveright]) +
+                       (S1/lz^2)*(-phixp_past1[xedge_z_below] + 2*phixp_past1[xind] -phixp_past1[xedge_z_above] + phizp_past1[z_edge_belowleft] - phizp_past1[z_edge_belowright] - phizp_past1[z_edge_aboveleft] + phizp_past1[z_edge_aboveright]);
+            
+            temp2    = S2*invLambda2[xind]*phixp_past1[xind];                        
+            leftover = -1.0/(dt^2)*(2*phixp_past1[xind]-phixp_past2[xind]);
+     
+            xedge_left        = xind-1; # find the index (in x-edge sc array) of the xedge to the left
+            y_edge_aboveleft2 = y_edge_aboveleft - 1; # index (in yedge sc array) of yedge above and twice to the left
+            z_edge_aboveleft2 = z_edge_aboveleft - 1;
+            
+            temp4 = S4/(2.0*dt)*( (phixp_past1[xind]^2 - phixp_past1[xedge_left]^2)/lx^2 + 
+                                  (phiyp_past1[y_edge_aboveleft]^2 - phiyp_past1[y_edge_aboveleft2]^2)/ly^2 +
+                                  (phizp_past1[z_edge_aboveleft]^2 - phizp_past1[z_edge_aboveleft2]^2)/lz^2 );
+            if (xind in e_sc)
+                v1      = e[xind,1];
+                v2      = e[xind,2];
+                rho_avg = 0.5*(rho_past1[v1]+rho_past1[v2]);
+                temp5   = S5*rho_avg*phixp_past1[xind];
+            else
+                temp5   = 0.0;
+            end
+            
+            Ccol[xind] = temp1+temp2+temp5+temp4+leftover - J1*lx/(ly*lz)*ecurrent[xind];                
+        end
+    end
+
+    ### y edge loop
+    for yind=1:Ne_y
+        real_yind = yind + Ne_x;
+        if !(real_yind in ebound_all)
+            ie_xyplane = (yind-1)%Ney_xyplane + 1;
+            plane_ind  = div(yind-1,Ney_xyplane) + 1;
+            rownum     = div(ie_xyplane-1,Nx) + 1; # column in the xy plane
+            colnum     = (ie_xyplane-1)%Nx + 1;    # row in the xy plane
+            
+            y_edge_left  = yind-1; # the index (in y-edge sc array) of the yedge to the left
+            y_edge_right = yind+1; # the index (in y-edge sc array) of the yedge to the right
+            x_edge_left  = ne_x*(rownum-1) + colnum-1 + (plane_ind-1)*Nex_xyplane; # xedge to the left
+            x_edge_right = x_edge_left + 1; # xedge to the right
+            x_edge_left_above  = x_edge_left+ne_x; # the xedge above (in y direction) and to the left
+            x_edge_right_above = x_edge_left+ne_x+1; # the xedge above (in y direction) to the right
+
+            y_edge_below = yind - Ney_xyplane;  # the yedge below (in z direction) the current yedge
+            y_edge_above = yind + Ney_xyplane;  # the yedge below (in z direction) the current yedge
+            z_edge_behind = ie_xyplane + (plane_ind-2)*Nv_xyplane; # zedge behind (in y direction) and one row below the current yedge
+            z_edge_front  = z_edge_behind + Nx; # zedge in front (in y direction) and one row below the current yedge
+            z_edge_behindabove = z_edge_behind + Nv_xyplane; # zedge behind (in y direction) and above the current yedge
+            z_edge_frontabove  = z_edge_behindabove + Nx;    # zedge in front (in y direction) and above the current yedge
+
+            temp1    = (S1/lx^2)*(-phiyp_past1[y_edge_left] + 2*phiyp_past1[yind] - phiyp_past1[y_edge_right] + phixp_past1[x_edge_left] - phixp_past1[x_edge_left_above] - phixp_past1[x_edge_right] + phixp_past1[x_edge_right_above]) +
+                       (S1/lz^2)*(-phiyp_past1[y_edge_below] + 2*phiyp_past1[yind] - phiyp_past1[y_edge_above] + phizp_past1[z_edge_behind] - phizp_past1[z_edge_front] - phizp_past1[z_edge_behindabove] + phizp_past1[z_edge_frontabove]);
+            
+            temp2    = S2*invLambda2[real_yind]*phiyp_past1[yind];
+            leftover = -1.0/(dt^2)*(2*phiyp_past1[yind]-phiyp_past2[yind]);
+
+            y_edge_behind       = yind-Nx; # the index (in y-edge sc array) of the yedge below current yedge
+            x_edge_right_behind = x_edge_right-ne_x; # index (in y-edge sc array) of xedge below to the right
+            z_edge_behindabove2 = z_edge_behindabove - Nx;
+           
+            temp4 = S4/(2.0*dt)*( (phixp_past1[x_edge_right]^2 - phixp_past1[x_edge_right_behind]^2)/lx^2 +
+                                  (phiyp_past1[yind]^2 - phiyp_past1[y_edge_behind]^2)/ly^2 +
+                                  (phizp_past1[z_edge_behindabove] - phizp_past1[z_edge_behindabove2])/lz^2  );
+            
+            if (real_yind in e_sc)
+                v1      = e[real_yind,1];
+                v2      = e[real_yind,2];
+                rho_avg = 0.5*(rho_past1[v1]+rho_past1[v2]);
+                temp5   = S5*rho_avg*phiyp_past1[yind];
+            else
+                temp5   = 0.0;
+            end
+            
+            Ccol[real_yind] = temp1+temp2+temp5+temp4+leftover - J1*ly/(lx*lz)*ecurrent[real_yind];
+        end
+    end
+    
+    ### z edge loop
+    for zind=1:Ne_z
+        real_zind = zind + Ne_x + Ne_y;
+        if !(real_zind in ebound_all)
+            ie_xyplane = (zind-1)%Nv_xyplane + 1;
+            plane_ind  = div(zind-1,Nv_xyplane) + 1;
+            rownum     = div(ie_xyplane-1,Nx) + 1; # column in the xy plane
+            colnum     = (ie_xyplane-1)%Nx + 1;    # row in the xy plane
+            
+            z_edge_left  = zind-1; # the zedge to the left
+            z_edge_right = zind+1; # the zedge to the right
+            x_edge_left  = ne_x*(rownum-1) + colnum-1 + (plane_ind-1)*Nex_xyplane; # xedge to the left
+            x_edge_right = x_edge_left + 1; # xedge to the right
+            x_edge_left_above  = x_edge_left+Nex_xyplane; # the xedge above (in z direction) and to the left
+            x_edge_right_above = x_edge_left_above+1; # the xedge above (in z direction) to the right
+            
+            z_edge_behind = zind-Nx; # zedge behind (in y direction) the current zedge
+            z_edge_front  = zind+Nx; # zedge in front (in y direction) the current zedge
+            y_edge_behind = (rownum-2)*Nx + colnum + (plane_ind-1)*Ney_xyplane; # yedge behind (in y direction) the current zedge
+            y_edge_front  = y_edge_behind + Nx; # yedge in front (in y direction) the current zedge
+            y_edge_behindabove = y_edge_behind + Ney_xyplane; # yedge behind (in y direction) and above the current zedge
+            y_edge_frontabove  = y_edge_behindabove + Nx; # yedge in front (in y direction) and above the current zedge
+            
+            temp1 =  (S1/lx^2)*(-phizp_past1[z_edge_left] + 2*phizp_past1[zind] - phizp_past1[z_edge_right] + phixp_past1[x_edge_left] - phixp_past1[x_edge_left_above] - phixp_past1[x_edge_right] + phixp_past1[x_edge_right_above]) +
+                     (S1/ly^2)*(-phizp_past1[z_edge_behind] + 2*phizp_past1[zind] - phizp_past1[z_edge_front] + phiyp_past1[y_edge_behind] - phiyp_past1[y_edge_behindabove] - phiyp_past1[y_edge_front] + phiyp_past1[y_edge_frontabove]);
+            
+            temp2    = S2*invLambda2[real_zind]*phizp_past1[zind];
+            leftover = -1.0/(dt^2)*(2*phizp_past1[zind]-phizp_past2[zind]);
+            
+            z_edge_below = zind - Nv_xyplane;
+            x_edge_right_below = x_edge_right - Nex_xyplane;
+            y_edge_front_below = y_edge_front - Ney_xyplane;
+            
+            temp4 = S4/(2.0*dt)*( (phixp_past1[x_edge_right]^2 - phixp_past1[x_edge_right_below]^2)/lx^2 +
+                                  (phiyp_past1[y_edge_front]^2 - phiyp_past1[y_edge_front_below]^2)/ly^2 +
+                                  (phizp_past1[zind]^2 - phizp_past1[z_edge_below]^2)/lz^2 );
+                
+            if (real_zind in e_sc)
+                v1      = e[real_zind,1];
+                v2      = e[real_zind,2];
+                rho_avg = 0.5*(rho_past1[v1]+rho_past1[v2]);
+                temp5   = S5*rho_avg*phizp_past1[zind];
+            else
+                temp5   = 0.0;
+            end
+            
+            Ccol[real_zind] = temp1+temp2+temp5+temp4+leftover - J1*lz/(lx*ly)*ecurrent[real_zind];
+        end
+    end
+    
+    
+    return Ccol;
 end

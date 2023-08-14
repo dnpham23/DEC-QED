@@ -1,37 +1,34 @@
 using JLD2;
-include("mesh.jl"); include("tree.jl"); include("utils.jl"); include("linsolve.jl"); include("amperesolve.jl");include("amperesolve_delta.jl"); include("plotting.jl"); include("computeFields.jl");
+include("mesh.jl"); include("tree.jl"); include("utils.jl"); include("linsolve.jl"); include("amperesolve.jl");include("amperesolve_delta.jl"); include("computeFields.jl");
 
 # dimensions of the problem (all lengths are scaled by penetration depth lambda_L)
 xmax =  30.0;
 xmin = -30.0;
-ymax =  24.0;
-ymin = -24.0;
-zmax =  10.0;
-zmin = -10.0;
-# x dimensions
-xleft_scring_inner = 0.0;
-xleft_scring_outer = -8.0;
-xright_scring_inner = 16.0;
-xright_scring_outer = 24.0;
-# y dimensions
-ybottom_scring_inner = -8.0;
-ybottom_scring_outer = -16.0;
-ytop_scring_inner    =  8.0;
-ytop_scring_outer    =  16.0;
-# z dimensions
-zmax_scring          =  4.0;
-zmin_scring          = -4.0;
+ymax =  30.0;
+ymin = -30.0;
+zmax =  16.0;
+zmin = -16.0;
+xleft_scring_inner = -14.0;
+xleft_scring_outer = -24.0;
+xright_scring_inner = 14.0;    
+xright_scring_outer = 24.0;  
+ybottom_scring_inner = -14.0;
+ybottom_scring_outer = -24.0;
+ytop_scring_inner    =  14.0;
+ytop_scring_outer    =  24.0;
+zmax_scring          =  6.0;
+zmin_scring          = -6.0;
 
-Lx_max = -16.0;
-Lx_min = -24.0;
-Ly_max =  4.0;
-Ly_min = -4.0;
-Lz_max =  4.0;
-Lz_min = -4.0;
+Lx_max =  8.0;
+Lx_min = -8.0;
+Ly_max =  8.0;
+Ly_min = -8.0;
+Lz_max =  6.0;
+Lz_min = -6.0;
 
 Nx = 31;           # number of vertices along x
-Ny = 25;           # number of vertices along y
-Nz = 11;           # number of vertices along z
+Ny = 31;           # number of vertices along y
+Nz = 17;           # number of vertices along z
 
 
 ne_x = Nx - 1;    # number of x-edge on each row
@@ -53,7 +50,7 @@ Ney_xyplane = ne_y*Nx;
 Ne_xyplane = Nex_xyplane + Ney_xyplane; # doesn't inlcude z edges
 
 # info about sc edges
-ne_scx_seg  = Int((xleft_scring_inner-xleft_scring_outer)/lx); # still works if sc loop thickness is uniform
+ne_scx_seg  = Int((xleft_scring_inner-xleft_scring_outer)/lx);
 ne_scy_seg  = Int((ybottom_scring_inner-ybottom_scring_outer)/ly);
 ne_scz      = Int((zmax_scring-zmin_scring)/lz);
 ne_scx_len  = Int((xright_scring_outer-xleft_scring_outer)/lx);
@@ -71,15 +68,16 @@ nv_scbound      = 2*(ne_scx_len+ne_scy_len+ne_scx_inlen+ne_scy_inlen)*(ne_scz+1)
 Ne_jj  = (ne_scx_seg+1)*(ne_scz+1);
 Ne_scx_xyplane = 2*(ne_scy_seg+1)*ne_scx_len + 2*ne_scx_seg*(ne_scy_inlen-1); # number of x-edges in sc on one xy plane
 Ne_scy_xyplane = 2*(ne_scx_seg+1)*ne_scy_len + 2*ne_scy_seg*(ne_scx_inlen-1); # number of y-edges in sc on one xy plane
+Nv_sc_xyplane  = 2*(ne_scy_seg+1)*(ne_scx_len+1) + 2*(ne_scx_seg+1)*(ne_scy_inlen-1); 
 Ne_scx = Ne_scx_xyplane*(ne_scz+1); # number of x-edges in the superconductor
 Ne_scy = Ne_scy_xyplane*(ne_scz+1); # number of y-edges in the superconductor
-Ne_scz = (2*(ne_scy_seg+1)*(ne_scx_len+1) + 2*(ne_scx_seg+1)*(ne_scy_inlen-1))*ne_scz; # number of z-edges in the superconductor
+Ne_scz = Nv_sc_xyplane*ne_scz; # number of z-edges in the superconductor
 Ne_sc  = Ne_scx + Ne_scy + Ne_scz;
-Nv_sc  = (2*(ne_scy_seg+1)*(ne_scx_len+1) + 2*(ne_scy_inlen-1)*(ne_scx_seg+1))*(ne_scz+1);
+Nv_sc  = Nv_sc_xyplane*(ne_scz+1);
 
-ne_airx_seg_left   = Int((xleft_scring_outer - xmin)/lx);
-ne_airy_seg_bottom = Int((ybottom_scring_outer - ymin)/ly);;
-ne_airz_seg_bottom = Int((zmin_scring - zmin)/lz);
+ne_airx_seg = Int((xleft_scring_outer - xmin)/lx);
+ne_airy_seg = Int((ybottom_scring_outer - ymin)/ly);;
+ne_airz_seg = Int((zmin_scring - zmin)/lz);
 
 # edge info for the current loop
 ne_x_loop  = Int((Lx_max - Lx_min)/lx);
@@ -120,12 +118,12 @@ Is2      = (eps_o*Phi_o^2)/(mo*lo);
 rho1     = mu_o*eps_o*Qo*Phi_o/(mo*to);
 
 # Input values
-Nstep     = 301;
-simulatetime = 10.5e-4;
-dt        = simulatetime/(Nstep-1);
-alpha     = 50.0*2.865677950146584e8;
-Jc        = 0.05*alpha*simulatetime; # critical current per z length
-lambda    = 8.0;
+Nstep     = 101;
+simulatetime = 3.5e-4;
+dt        = simulatetime/(Nstep-1); 
+alpha     = 2.865677950146584e8;
+Jc        = 10.0*alpha*simulatetime; # critical current per z length
+lambda    = 10.0;
 conv_tol  = 0.05;
 reltol    = 1e-4;
 
@@ -158,22 +156,21 @@ e_jj = Array{Int,1}(undef, Ne_jj);
 for i = 1:Ne_jj
     rownum_jj = div(i-1, ne_scx_seg+1)+1;
     colnum_jj = (i-1)%(ne_scx_seg+1) + 1;
-    e_jj[i] = Ne_x + (rownum_jj - 1 + ne_airz_seg_bottom)*Ney_xyplane + (ne_airy_seg_bottom + Int(floor(ne_scy_len/2)) -1)*Nx + ne_airx_seg_left + colnum_jj;
+    e_jj[i] = Ne_x + (rownum_jj - 1 + ne_airz_seg)*Ney_xyplane + (ne_airy_seg + Int(floor(ne_scy_len/2)) -1)*Nx + ne_airx_seg + colnum_jj;
 end
 
 # define the mesh
-e,v  = Mesh3Dcube(xmax,xmin,ymax,ymin,zmax,zmin,Nx,Ny,Nz, ne_x,ne_y,ne_z,Ne_x,Ne_y, Ne_z, Ne,Nv,lx,ly,lz, Nv_xyplane, Nex_xyplane, Ney_xyplane);
+e,v  = Mesh3Dcube(xmin,ymin,zmin,Nx,ne_x,Ne_x,Ne_y, Ne_z, Ne,Nv,lx,ly,lz, Nv_xyplane, Nex_xyplane, Ney_xyplane);
 # find boundary nodes
 vbound, xtol, ytol, ztol  = vboundary3D(v,xmax,xmin,ymax,ymin,zmax,zmin, Nv,Nx,Ny,Nv_xyplane);
 # mapping v->e and e->v
-v2exmap, v2eymap, v2ezmap = vemap3D(e,v,vbound,Nx,Ny,Nz,Nv,ne_x,Ne_x, Ne_y, xtol, ytol,ztol,xmin,xmax, ymin,ymax, zmin,zmax, Nex_xyplane, Ney_xyplane, Nv_xyplane);
+v2exmap, v2eymap, v2ezmap = vemap3D(v,Nx,Nv,ne_x,Ne_x, Ne_y, xtol, ytol,ztol,xmin,xmax,ymin,ymax,zmin,zmax, Nex_xyplane, Ney_xyplane, Nv_xyplane);
 # find the edges in the sc region
-e_sc = regionsort3D_scring2(e,v,Nx,Ny,Nv,ne_x,ne_y,Ne_x,Ne_y, lx,ly,Ne_scx, Ne_scy,Ne_scz, Ne_sc, Nv_xyplane, Nex_xyplane, Ney_xyplane, ne_airx_seg_left, ne_airy_seg_bottom,ne_airz_seg_bottom, ne_scx_horblock, ne_scx_verblock, ne_scy_verblock, ne_scy_horblock, nv_sc_horblock, nv_sc_verblock, Ne_scx_xyplane, Ne_scy_xyplane, Nv_sc_xyplane);
-
+e_sc = regionsort3D_scring(e,v,Nx,Ny,Nv,ne_x,ne_y,Ne_x,Ne_y, lx,ly,Ne_scx, Ne_scy,Ne_scz, Ne_sc, Nv_xyplane, Nex_xyplane, Ney_xyplane, ne_airx_seg, ne_airy_seg,ne_airz_seg, ne_scx_horblock, ne_scx_verblock, ne_scy_verblock, ne_scy_horblock, nv_sc_horblock, nv_sc_verblock, Ne_scx_xyplane, Ne_scy_xyplane, Nv_sc_xyplane);
 ebound, ebound_all  = eboundary3D(vbound,e,ne_x,ne_y,ne_z,Ne,Nx, Ny, Nz, Ne_x, Ne_y, Nex_xyplane, Ney_xyplane);
 invLambda2 = materials_scringJJ(Ne, e_sc, e_jj, lambda);
 
-tree       = stree3D(e,Nx,ne_x,ne_y,Nbranch,Ney_xyplane,Ne_x,Ne_y,Ne_z);
+tree       = stree3D(ne_x,Nbranch,Ney_xyplane,Ne_x,Ne_y, Ne_z);
 
 # Allocate space to hold the solutions
 phixpgrid = zeros(ne_x,Ny,Nz,Nstep);
@@ -254,9 +251,7 @@ for tn = 1:Nstep
     phip_next_y = phip_next[Ne_x+1:Ne_x+Ne_y];
     phip_next_z = phip_next[Ne_x+Ne_y+1:end];    
 
-    ##phix, phiy  = computePhi(phix_past1, phiy_past1, phip_next_x, phip_next_y, phixp_past1, phiyp_past1, psixpast1, psiypast1, S4,dt,ne_x, Nx, Ne_x,Ne_y, ebound_all,lx,ly);
-    Bx, By, Bz      = computeBfield3D(phip_next_x, phip_next_y, phip_next_z, Ne, Nx, Ny, Nz,ne_x, ne_y, ne_z, lx, ly, lz,Nex_xyplane, Ney_xyplane, Nv_xyplane);
-    ##Ix, Iy = computeCurrent(phip_next_x,phip_next_y,psix,psiy, ecurrent, lx, ly, eps_list, mu_list, invLambda2, Is1, Is2,ebound_all,Ne_x, Ne_y, Nx, ne_x,lo);
+    Bx, By, Bz      = computeBfield3D(phip_next_x, phip_next_y, phip_next_z, Nx, Ny, Nz,ne_x, ne_y, ne_z, lx, ly, lz, Nex_xyplane, Ney_xyplane, Nv_xyplane);
 
     phixpgrid[:,:,:,tn] = reshape(phip_next_x,ne_x,Ny,Nz);
     phiypgrid[:,:,:,tn] = reshape(phip_next_y,Nx,ne_y,Nz);

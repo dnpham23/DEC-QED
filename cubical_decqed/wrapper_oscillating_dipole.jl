@@ -1,6 +1,6 @@
 using JLD2;
 #using IterativeSolvers;
-include("mesh.jl"); include("tree.jl"); include("utils.jl"); include("linsolve.jl"); include("amperesolve.jl");include("amperesolve_delta.jl"); include("plotting.jl"); include("computeFields.jl");
+include("mesh.jl"); include("tree.jl"); include("utils.jl"); include("linsolve.jl"); include("amperesolve.jl");include("amperesolve_delta.jl"); include("computeFields.jl");
 
 # dimensions of the problem (all lengths are scaled by penetration depth lambda_L)
 xmax =  24.0;
@@ -128,19 +128,18 @@ end
 #currentamp = ones(Ncurrent);
 
 # define the mesh
-e,v  = Mesh3Dcube(xmax,xmin,ymax,ymin,zmax,zmin,Nx,Ny,Nz, ne_x,ne_y,ne_z,Ne_x,Ne_y, Ne_z, Ne,Nv,lx,ly,lz, Nv_xyplane, Nex_xyplane, Ney_xyplane);
+e,v  = Mesh3Dcube(xmin,ymin,zmin,Nx,ne_x,Ne_x,Ne_y, Ne_z, Ne,Nv,lx,ly,lz, Nv_xyplane, Nex_xyplane, Ney_xyplane);
 # find boundary nodes
 vbound, xtol, ytol, ztol  = vboundary3D(v,xmax,xmin,ymax,ymin,zmax,zmin, Nv,Nx,Ny,Nv_xyplane);
 # mapping v->e and e->v
-v2exmap, v2eymap, v2ezmap = vemap3D(e,v,vbound,Nx,Ny,Nz,Nv,ne_x,Ne_x, Ne_y, xtol, ytol,ztol,xmin,xmax, ymin,ymax, zmin,zmax, Nex_xyplane, Ney_xyplane, Nv_xyplane);
+v2exmap, v2eymap, v2ezmap = vemap3D(v,Nx,Nv,ne_x,Ne_x, Ne_y, xtol, ytol,ztol,xmin,xmax,ymin,ymax,zmin,zmax, Nex_xyplane, Ney_xyplane, Nv_xyplane);
 # find the edges in the sc region
 e_sc, e_air = regionsort3D_cav(e,v,Nx,Ny,Nv,ne_x,ne_y,Ne_x,Ne_y, lx,ly, ne_airx, ne_airy, ne_airz, Ne_airx, Ne_airy,  Ne_airz, Ne_air, Ne_airx_xyplane, Ne_airy_xyplane, Ne_airz_xyplane, Ne_airx_xzplane, Ne_airz_xzplane, Ne_airy_yzplane, Ne_airz_yzplane, Ne_scx, Ne_scy, Ne_scz, Ne_sc, Nv_xyplane, Nex_xyplane, Ney_xyplane, ne_scx_seg, ne_scy_seg,ne_scz_seg);
 ebound, ebound_all  = eboundary3D(vbound,e,ne_x,ne_y,ne_z,Ne,Nx, Ny, Nz, Ne_x, Ne_y, Nex_xyplane, Ney_xyplane);
-invLambda2 = materials_3Dcav(Ne, e_sc, lambda);
+invLambda2 = materials(Ne, e_sc, lambda);
 
-tree       = stree3D(e,Nx,ne_x,ne_y,Nbranch,Ney_xyplane,Ne_x,Ne_y,Ne_z);
-#x          = reducedMat(tree,Ne,Nbranch,ne_x,ne_y,Ne_x,Nx); # NEEDS 3D VERSION
-#Y          = GaussMat(v2exmap,v2eymap,Nv,Ne,Nx,lx,ly);      # NEEDS 3D VERSION
+tree       = stree3D(ne_x,Nbranch,Ney_xyplane,Ne_x,Ne_y, Ne_z);
+
 
 # Allocate space to hold the solutions
 phixpgrid = zeros(ne_x,Ny,Nz,Nstep);
@@ -212,9 +211,7 @@ for tn = 1:Nstep
     phip_next_y = phip_next[Ne_x+1:Ne_x+Ne_y];
     phip_next_z = phip_next[Ne_x+Ne_y+1:end];    
 
-    ##phix, phiy  = computePhi(phix_past1, phiy_past1, phip_next_x, phip_next_y, phixp_past1, phiyp_past1, psixpast1, psiypast1, S4,dt,ne_x, Nx, Ne_x,Ne_y, ebound_all,lx,ly);
-    Bx, By, Bz      = computeBfield3D(phip_next_x, phip_next_y, phip_next_z, Ne, Nx, Ny, Nz,ne_x, ne_y, ne_z, lx, ly, lz,Nex_xyplane, Ney_xyplane, Nv_xyplane);
-    ##Ix, Iy = computeCurrent(phip_next_x,phip_next_y,psix,psiy, ecurrent, lx, ly, eps_list, mu_list, invLambda2, Is1, Is2,ebound_all,Ne_x, Ne_y, Nx, ne_x,lo);
+    Bx, By, Bz      = computeBfield3D(phip_next_x, phip_next_y, phip_next_z, Nx, Ny, Nz,ne_x, ne_y, ne_z, lx, ly, lz, Nex_xyplane, Ney_xyplane, Nv_xyplane);
 
     phixpgrid[:,:,:,tn] = reshape(phip_next_x,ne_x,Ny,Nz);
     phiypgrid[:,:,:,tn] = reshape(phip_next_y,Nx,ne_y,Nz);
@@ -222,11 +219,7 @@ for tn = 1:Nstep
     Bxgrid[:,:,:,tn]    = reshape(Bx, Nx, ne_y, ne_z);
     Bygrid[:,:,:,tn]    = reshape(By, ne_x, Ny, ne_z);
     Bzgrid[:,:,:,tn]    = reshape(Bz, ne_x, ne_y, Nz);
-    #Ixgrid[:,:,tn]    = reshape(Ix,ne_x,Ny);
-    #Iygrid[:,:,tn]    = reshape(Iy,Nx,ne_y);
     rhogrid[:,:,:,tn]   = reshape(rho_current,Nx,Ny,Nz);
 end
 
-#return Lk, Ax_ss_grid, Ay_ss_grid, Ax_ss_vec, Ay_ss_vec;
 @save "SimulationData3.jld2" phixpgrid phiypgrid phizpgrid Bxgrid Bygrid Bzgrid rhogrid Nstep lx ly lz
-#end
