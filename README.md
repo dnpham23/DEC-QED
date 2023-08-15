@@ -18,7 +18,8 @@ For numerical modeling, we employ a dual-mesh construction (primal + dual meshes
 ![DEC schematics](/docs/figs/DualMesh_DEC_schematics_4.svg)
 
 ## Development status
-DEC-QED as a computational toolbox is still in early stage of development. Although the method is fully general, the codes available here are hardwired to perform calculations for specific test geometries. The integration with a general-purpose mesher to perform simulations on arbitrary geometries is currently under development.
+DEC-QED as a computational toolbox is still in early stage of development. Examples of applications of the method to specific problems are organized into wrapper files. 
+The generalization of the toolbox to perform simulations of arbitrary geometries is currently under development.
 
 ## Usage 
 First, make sure Git is configured on your workstation. Then clone this repository either via SSH key or HTTPS.
