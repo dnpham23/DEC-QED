@@ -21,8 +21,8 @@ dualmesh, primalmesh   = complete_dualmesh(raw"/meshes/cocentric_spheres_dielect
 # numerical error tolerance for coordinates of vertices
 tol = 1e-3;
 # the three spherical boundary layers and their origin 
-r1  = 16.0;
-r2  = 20.0;
+r1  = 20.0;
+r2  = 22.0;
 r3  = 24.0;
 rd  = 12.0;
 xo  = 0.0;
@@ -78,7 +78,7 @@ svlist = SharedArray{Float64}((length(klist), Nsv));
     svlist[i,:] = svdvals(mop)[end-Nsv+1:end]
 end
 
-meshfile = "cocentric_spheres_dielectric_sphere_lessdense.msh";
+meshfile = "cocentric_spheres_dielectric_sphere_2.msh";
 
 using JLD2
 @save "SimulationData.jld2" klist svlist meshfile Lmax Lmin Nsv r1 r2 r3 rd dconst
