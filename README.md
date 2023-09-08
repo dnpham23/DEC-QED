@@ -32,6 +32,8 @@ Checkout the wrappers in [simplicial_decqed](https://github.com/dnpham23/DEC-QED
 
 For cubical-DEC the construction of the primal and dual meshes needs to be constructed within the program in a case-specific manner. 
 
+If you have questions and/or suggestions regarding the toolbox or its theoretical formulation, please direct them to dnpham@princeton.edu
+
 ## References
 <a id="1">[1]</a> 
 D. N. Pham, W. Fan, M. G. Scheer, and H. E. Tureci, [Phys. Rev. A 107, 053704](https://journals.aps.org/pra/abstract/10.1103/PhysRevA.107.053704) (2023),
