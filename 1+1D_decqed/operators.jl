@@ -71,3 +71,19 @@ function sinegordon_dec_3(dx::Float64, dt::Float64, nv_x::Int64, phix_current::A
 
     return phit_current
 end
+
+function laplacian_dec_spacetime(dx::Float64, dt::Float64, nv_x::Int64, phix_current::Array{Float64,1}, phit_past::Array{Float64,1},
+                                 phi_current::Array{Float64,1}, rhs::Array{Float64,1}, g::Float64)
+
+    phit_current = zeros(nv_x)
+
+    da = dx*dt; # uniform grid
+    tempx = dt/(dx*da)
+    tempt = dx/(dt*da)
+    for v = 2:nv_x-1 # exclude the boundary points
+        #phit_current[v] = (rhs[v] + phi_current[v]*g^2 - (-phit_past[v]*tempt - phix_current[v-1]*tempx + phix_current[v]*tempx))/tempt
+        phit_current[v] = ((phit_past[v]*tempt - phix_current[v-1]*tempx + phix_current[v]*tempx) - (rhs[v] + phi_current[v]*g^2))/tempt
+    end
+
+    return phit_current
+end
