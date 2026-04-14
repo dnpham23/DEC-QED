@@ -6,19 +6,22 @@ DEC-QED combines gauge-invariant, flux-based formulation of electrodynamics with
 
 ## Description of the method
 ### The electrohydrodynamic equations of superconductors
-In our model, the equations of motion describing the dynamics between light $(\mathbf{A},V)$ and the collective superconducting condensate $\psi(=\sqrt{\rho}e^{i\theta})$ are written for the gauge-invariant, hybridized field $\mathbf{\mathcal{A}}=\mathbf{A-\frac{\hbar}{q}\nabla\theta}$ 
+To model the electrodynamical response of superconducting devices, the equations of motion describing the dynamics between light $(\mathbf{A},V)$ and the collective superconducting condensate $\psi(=\sqrt{\rho}e^{i\theta})$ are written for the gauge-invariant, hybridized field $\mathbf{A'}=\mathbf{A-\frac{\hbar}{q}\nabla\theta}$ 
 
-$${\bf\nabla}\\!\times\\!{\bf\nabla}\\!\times\\!\bm{\mathcal{A}} + \mu_0 \epsilon_0\frac{\partial^2\bm{\mathcal{A}}}{\partial t^2} + \frac{\mu_0 q^2}{m}\rho\bm{\mathcal{A}}  -\frac{\mu_0\epsilon_0 q}{2m}\frac{\partial}{\partial t}\nabla\big|\bm{\mathcal{A}}\big|^2 + \frac{\mu_0\epsilon_0\hbar^2}{2mq}\frac{\partial}{\partial t}\nabla\bigg[\frac{\nabla^2(\sqrt{\rho})}{\sqrt{\rho}}\bigg] =  \mu_0{\bf J}_{src},$$
+$${\bf\nabla}\\!\times\\!{\bf\nabla}\\!\times\\!\mathbf{A'} + \mu_0 \epsilon_0\frac{\partial^2\mathbf{A'}}{\partial t^2} + \frac{\mu_0 q^2}{m}\rho\mathbf{A'}  -\frac{\mu_0\epsilon_0 q}{2m}\frac{\partial}{\partial t}\nabla\big|\mathbf{A'}\big|^2 + \frac{\mu_0\epsilon_0\hbar^2}{2mq}\frac{\partial}{\partial t}\nabla\bigg[\frac{\nabla^2(\sqrt{\rho})}{\sqrt{\rho}}\bigg] =  \mu_0{\bf J}_{src},$$
 
 and the density of superconducting condensate, $\rho$, 
 
-$$\frac{\partial\rho}{\partial t}  = {\bf \nabla} \cdot \Bigg[\frac{q}{m}\rho\bm{\mathcal{A}}  - \frac{{\bf J_{src}}}{q} \Bigg] - \frac{\partial\rho_{src}}{\partial t}.$$
+$$\frac{\partial\rho}{\partial t}  = {\bf \nabla} \cdot \Bigg[\frac{q}{m}\rho\mathbf{A'}  - \frac{{\bf J_{src}}}{q} \Bigg] - \frac{\partial\rho_{src}}{\partial t}.$$
 
 ### 3D discretization
 
-For numerical modeling, we employ a dual-mesh construction (primal + dual meshes), on which the continuous equations above are then transformed into equations for the coarse-grained variables $\rho(v)$ and $\Phi(e) = \int_ed{\bf \ell} \cdot \bm{\mathcal{A}}$, where the field $\Phi(e)$ live on the discrete edges of the discretized primal computational mesh, and $\rho(v)$ lives on the vertices of the primal mesh. This procedure is done using Discrete Exterior Calculus (DEC). A schematic of a cubial dual mesh, along with DEC operators used in our formulation is given in the following Figure:
+For numerical modeling, we employ a dual-mesh construction (primal + dual meshes), on which the continuous equations above are then transformed into equations for the coarse-grained variables $\rho(v)$ and $\Phi(e) = \int_ed{\bf \ell} \cdot \mathbf{A'}$, where the field $\Phi(e)$ live on the discrete edges of the discretized primal computational mesh, and $\rho(v)$ lives on the vertices of the primal mesh. This procedure is done using Discrete Exterior Calculus (DEC). A schematic of a cubial dual mesh, along with DEC operators used in our formulation is given in the following Figure:
 
 ![DEC schematics](/docs/figs/DualMesh_DEC_schematics_4.svg)
+
+### Spacetime formulation
+We also provide an extension of DEC that treats time as an additional dimension and discretize the equations directly on spacetime [[2]](#2). This feature is currently available for nonlinear wave dynamics in 1+1D. Generalization to higher spatial dimensions is reserved for future work.
 
 ## Development status
 DEC-QED as a computational toolbox is still in early stage of development. Examples of applications of the method to specific problems are organized into wrapper files. 
@@ -41,4 +44,8 @@ If you have questions and/or suggestions regarding the toolbox or its theoretica
 <a id="1">[1]</a> 
 D. N. Pham, W. Fan, M. G. Scheer, and H. E. Tureci, [Phys. Rev. A 107, 053704](https://journals.aps.org/pra/abstract/10.1103/PhysRevA.107.053704) (2023),
 arXiv version: [arXiv:2212.12775](https://arxiv.org/abs/2212.12775) (2022).
+
+<a id="2">[2]</a> 
+D. N. Pham, Z. Zager, W. Fan, and H. E. Tureci, [Phys. Rev. A 113, 012211](https://journals.aps.org/pra/abstract/10.1103/59g7-g9q6) (2026),
+arXiv version: [arXiv:2212.12775](https://arxiv.org/abs/2504.12286) (2025).
 
