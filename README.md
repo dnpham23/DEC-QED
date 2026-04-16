@@ -47,5 +47,5 @@ arXiv version: [arXiv:2212.12775](https://arxiv.org/abs/2212.12775) (2022).
 
 <a id="2">[2]</a> 
 D. N. Pham, Z. Zager, W. Fan, and H. E. Tureci, [Phys. Rev. A 113, 012211](https://journals.aps.org/pra/abstract/10.1103/59g7-g9q6) (2026),
-arXiv version: [arXiv:2212.12775](https://arxiv.org/abs/2504.12286) (2025).
+arXiv version: [arXiv:2504.12286](https://arxiv.org/abs/2504.12286) (2025).
 
