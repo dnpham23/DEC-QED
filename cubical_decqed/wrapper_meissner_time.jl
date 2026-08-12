@@ -257,14 +257,14 @@ for tn = 1:Nstep
     phip_next_y = phip_next[Ne_x+1:Ne_x+Ne_y];
     phip_next_z = phip_next[Ne_x+Ne_y+1:end];    
 
-    Bx, By, Bz      = computeBfield3D(phix,phiy,phiz,Nx, Ny, Nz,ne_x, ne_y, ne_z, lx, ly, lz,Nex_xyplane, Ney_xyplane, Nv_xyplane);
+    Bx, By, Bz      = computeBfield3D(phip_next_x,phip_next_y,phip_next_z,Nx, Ny, Nz,ne_x, ne_y, ne_z, lx, ly, lz,Nex_xyplane, Ney_xyplane, Nv_xyplane);
     phixpgrid[:,:,:,tn] = reshape(phip_next_x,ne_x,Ny,Nz);
     phiypgrid[:,:,:,tn] = reshape(phip_next_y,Nx,ne_y,Nz);
     phizpgrid[:,:,:,tn] = reshape(phip_next_z,Nx,Ny,ne_z);
     Bxgrid[:,:,:,tn]    = reshape(Bx, Nx, ne_y, ne_z);
     Bygrid[:,:,:,tn]    = reshape(By, ne_x, Ny, ne_z);
     Bzgrid[:,:,:,tn]    = reshape(Bz, ne_x, ne_y, Nz);
-    rhogrid[:,:,:,tn]   = reshape(rho,Nx,Ny,Nz);
+    rhogrid[:,:,:,tn]   = reshape(rho_current,Nx,Ny,Nz);
 end
 
 @save "SimulationData3.jld2" phixpgrid phiypgrid phizpgrid Bx By Bz rhogrid

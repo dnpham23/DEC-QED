@@ -108,3 +108,28 @@ function sinekleingordon_dec(dx::Float64, dt::Float64, nv_x::Int64, phix_current
 
     return phit_current
 end
+
+function linearized_fluctuation(dx::Float64, dt::Float64, nv_x::Int64, phix_current::Array{Float64,1}, phit_past::Array{Float64,1},
+                          phi_current::Array{Float64,1}, rhs::Array{Float64,1}, V1::Array{Float64,1}, bctype::String)
+
+    phit_current = zeros(nv_x)
+
+    da = dx*dt; # uniform grid
+    tempx = dt/(dx*da)
+    for v = 2:nv_x-1 # exclude the boundary points
+        phit_current[v] = phit_past[v] + dt^2*( (phix_current[v]-phix_current[v-1])/dx^2 + rhs[v] - V1[v]*phi_current[v] )
+    end
+    
+    if bctype == "periodic"
+       phit_current[1] = phit_past[1] + dt^2*( (phix_current[1]-phix_current[nv_x-1])/dx^2 + rhs[1] - V1[1]*phi_current[1] )
+       phit_current[nv_x] = phit_current[1]
+    end
+
+    if bctype == "radiative" ## not tested 
+       phit_current[1]    = phix_current[1]*dt/dx 
+       phit_current[nv_x] = -phix_current[end]*dt/dx
+
+    end
+
+    return phit_current
+end
