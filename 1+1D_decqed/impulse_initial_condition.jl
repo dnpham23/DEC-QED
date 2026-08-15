@@ -3,7 +3,8 @@ using JLD2;
 #using IterativeSolvers;
 using SparseArrays
 using LinearAlgebra
-include("operators.jl");
+include(joinpath(@__DIR__, "operators.jl"));
+include(joinpath(@__DIR__, "simulation.jl"));
 
 
 using CSV
@@ -60,22 +61,9 @@ phit[1, nv_x_half+1] = dt/dx;  # initial impulse at center
 phix = zeros(nv_t, nv_x-1);
 phi  = zeros(nv_t, nv_x);
 
-for t = 1:nv_t-1
-    phi_current  = phi[t,:]
-    phix_current = phi[t,2:end] .- phi[t,1:end-1]
-    phit_past    = phit[t,:]
-    phix[t,:]    = phix_current # update the current phix 
-
-    # compute the laplacian
-    phit_current    = linearized_fluctuation(dx, dt, nv_x, phix_current, phit_past, phi_current, rhs, V1, "radiative");
-    phi[t+1,:]      = phit_current + phi_current 
-    #phi[t+1,1]      = phi[t+1,2]
-    #phi[t+1,nv_x]   = phi[t+1,nv_x-1]
-    #phit_current[1] = phi[t+1,1] - phi[t,1]
-    #phit_current[nv_x] = phi[t+1,nv_x] - phi[t,nv_x]
-    phit[t+1,:] = phit_current
-end
-phix[nv_t,:] = phi[nv_t,2:end] .- phi[nv_t,1:end-1]
+operator! = (phi_current, phix_current, phit_past) ->
+    linearized_fluctuation(dx, dt, nv_x, phix_current, phit_past, phi_current, rhs, V1, "radiative")
+evolve!(phi, phit, phix, operator!)
 
 phit_fin = phit[end,:];
 phi_fin = phi[end,:];

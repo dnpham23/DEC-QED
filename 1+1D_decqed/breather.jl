@@ -2,7 +2,8 @@
 using JLD2;
 using SparseArrays
 using LinearAlgebra
-include("operators.jl");
+include(joinpath(@__DIR__, "operators.jl"));
+include(joinpath(@__DIR__, "simulation.jl"));
 
 # dimensions of the problem
 W = 100.0;
@@ -38,23 +39,11 @@ phi = zeros(nv_t, nv_x);
 phit[1,:] = dt*4*tan(nu)./(1 .+ (tan(nu)*sin.(-cos(nu)*u.*xi0) ./ cosh.(sin(nu).*xi0) ).^2).*( (cos(nu)*gamma*cos.(-cos(nu)*u.*xi0) ) ./ cosh.(sin(nu).*xi0) + (sin(nu)*gamma*u*sin.(-cos(nu)*u*xi0).*sinh.(sin(nu).*xi0))./(cosh.(sin(nu).*xi0)).^2 );
 phi[1,:]  = 4*atan.(tan(nu)*sin.(-cos(nu)*u.*xi0) ./ cosh.(sin(nu).*xi0));
 
-for t = 1:nv_t-1
-    phi_current  = phi[t,:]
-    phix_current = phi[t,2:end] .- phi[t,1:end-1]
-    phit_past    = phit[t,:]
-    phix[t,:]    = phix_current # update the current phix 
-
-    # compute the laplacian
-    ###phit_current = sinegordon_dec(dx, dt, nv_x, phix_current, phit_past, phi_current, rhs, q);
-    phit_current = sinegordon_dec_2(dx, dt, nv_x, phix_current, phit_past, phi_current, rhs, q, alpha, "hard-wall");
-    phi[t+1,:]      = phit_current + phi_current 
-    phi[t+1,1]      = phi[t+1,2] - (eta+kappa)*dx
-    phi[t+1,nv_x]   = phi[t+1,nv_x-1] + (eta-kappa)*dx
-    phit_current[1] = phi[t+1,1] - phi[t,1]
-    phit_current[nv_x] = phi[t+1,nv_x] - phi[t,nv_x]
-    phit[t+1,:] = phit_current
-end
-phix[nv_t,:] = phi[nv_t,2:end] .- phi[nv_t,1:end-1]
+operator! = (phi_current, phix_current, phit_past) ->
+    sinegordon_dec_2(dx, dt, nv_x, phix_current, phit_past, phi_current, rhs, q, alpha, "hard-wall")
+boundary! = (next_phi, current_phi, increment, step) ->
+    fixed_gradient_boundary!(next_phi, current_phi, increment, step, eta + kappa, eta - kappa, dx)
+evolve!(phi, phit, phix, operator!; boundary! = boundary!)
 
 
 
