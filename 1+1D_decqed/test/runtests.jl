@@ -20,16 +20,65 @@ include(joinpath(@__DIR__, "..", "simulation.jl"))
     @test phi[2, :] == [0.0, 1.0, 1.0, 1.0, 0.5]
     @test phit[2, :] == [0.0, 1.0, 1.0, 1.0, 0.5]
     @test phix[end, :] == [1.0, 0.0, 0.0, -0.5]
+
+    @test_throws ArgumentError centered_grid(0.0, 1.0)
+    @test_throws ArgumentError time_nodes(1.0, 0.0)
+    @test_throws ArgumentError evolve!(zeros(2, 2), zeros(2, 2), zeros(2, 1), operator!)
+    @test_throws DimensionMismatch evolve!(zeros(2, 3), zeros(2, 2), zeros(2, 2), operator!)
+    @test_throws DimensionMismatch evolve!(zeros(2, 3), zeros(2, 3), zeros(2, 2), (_, _, _) -> zeros(2))
 end
 
-@testset "periodic sine-Klein-Gordon boundary" begin
+@testset "Klein-Gordon operators" begin
+    phi = [0.5, 1.0, 1.5, 2.0]
+    phix = [0.25, 0.75, 1.25]
+    phit = [0.1, 0.2, 0.3, 0.4]
+    rhs = [0.0, 0.2, -0.1, 0.0]
+
+    massless = laplacian_dec_spacetime(0.5, 0.25, 4, phix, phit, phi, rhs, 2.0)
+    @test massless == [0.0, 0.2 + 0.25^2 * ((0.75 - 0.25) / 0.5^2 - 0.2 - 2.0^2),
+                        0.3 + 0.25^2 * ((1.25 - 0.75) / 0.5^2 + 0.1 - 2.0^2 * 1.5), 0.0]
+
+    massive = kleingordon_massive_dec(0.5, 0.25, 4, phix, phit, phi, rhs, 2.0, 0.3)
+    @test massive[1] == massive[end] == 0.0
+    @test massive[2] ≈ phit[2] + 0.25^2 * ((phix[2] - phix[1]) / 0.5^2 - rhs[2] - phi[2] * 2.0^2 + pi * 2.0 * 0.3 * sin(2 * sqrt(pi) * phi[2]))
+end
+
+@testset "Sine-Gordon operators" begin
+    phi = [1.0, 0.2, -0.4, 0.5]
+    phix = [0.3, -0.1, 0.2]
+    phit = [0.1, 0.2, 0.3, 0.4]
+    rhs = [0.4, 0.5, 0.6, 0.7]
+    qq = [1.0, 1.5, 2.0, 2.5]
+
+    base = sinegordon_dec(0.5, 0.25, 4, phix, phit, phi, rhs, 1.2, 0.4)
+    hard_wall = sinegordon_dec_2(0.5, 0.25, 4, phix, phit, phi, rhs, 1.2, 0.4, "hard-wall")
+    @test hard_wall == base
+
+    periodic = sinegordon_dec_2(0.5, 0.25, 4, phix, phit, phi, rhs, 1.2, 0.4, "periodic")
+    @test periodic[end] == periodic[1]
+    @test periodic[2:3] == base[2:3]
+
+    variable_q = sinegordon_dec_3(0.5, 0.25, 4, phix, phit, phi, rhs, qq, 0.4, "periodic")
+    @test variable_q[end] == variable_q[1]
+
+    sine_klein = sinekleingordon_dec(0.5, 0.25, 4, phix, phit, phi, rhs, qq, 0.4, "periodic", 2.0)
+    mass_scale = 0.25^2 / (1 + 0.4 * 0.25 / 2)
+    @test sine_klein[1] ≈ variable_q[1] - mass_scale * 2.0^2 * phi[1]
+    @test sine_klein[2] ≈ variable_q[2] - mass_scale * 2.0^2 * phi[2]
+    @test sine_klein[end] == sine_klein[1]
+end
+
+@testset "Linearized fluctuation boundaries" begin
     phi = [1.0, 0.0, 0.0, 0.0]
-    phix = [0.0, 0.0, 0.0]
+    phix = [0.3, 0.0, -0.2]
     phit = zeros(4)
     rhs = zeros(4)
-    qq = zeros(4)
+    potential = zeros(4)
 
-    increment = sinekleingordon_dec(1.0, 1.0, 4, phix, phit, phi, rhs, qq, 0.0, "periodic", 2.0)
-    @test increment[1] == -4.0
-    @test increment[end] == increment[1]
+    periodic = linearized_fluctuation(0.5, 0.25, 4, phix, phit, phi, rhs, potential, "periodic")
+    @test periodic[end] == periodic[1]
+
+    radiative = linearized_fluctuation(0.5, 0.25, 4, phix, phit, phi, rhs, potential, "radiative")
+    @test radiative[1] == 0.3 * 0.25 / 0.5
+    @test radiative[end] == -(-0.2) * 0.25 / 0.5
 end
