@@ -3,7 +3,8 @@ using JLD2;
 #using IterativeSolvers;
 using SparseArrays
 using LinearAlgebra
-include("operators.jl");
+include(joinpath(@__DIR__, "operators.jl"));
+include(joinpath(@__DIR__, "simulation.jl"));
 
 # dimensions of the problem
 ###s = 1e-1;
@@ -38,18 +39,9 @@ phi = zeros(nv_t, nv_x);
 phit[1,:] = -dt*4*u*exp.(xi0)./(sqrt(1-u^2)*(1 .+ exp.(2*xi0)));
 phi[1,:]  = 4*atan.(exp.(xi0));
 
-for t = 1:nv_t-1
-    phi_current  = phi[t,:]
-    phix_current = phi[t,2:end] .- phi[t,1:end-1]
-    phit_past    = phit[t,:]
-    phix[t,:]    = phix_current # update the current phix 
-
-    # compute the laplacian
-    phit_current = sinegordon_dec_2(dx, dt, nv_x, phix_current, phit_past, phi_current, rhs, q, alpha, "periodic");
-    phi[t+1,:]   = phit_current + phi_current 
-    phit[t+1,:]  = phit_current
-end
-phix[nv_t,:] = phi[nv_t,2:end] .- phi[nv_t,1:end-1]
+operator! = (phi_current, phix_current, phit_past) ->
+    sinegordon_dec_2(dx, dt, nv_x, phix_current, phit_past, phi_current, rhs, q, alpha, "periodic")
+evolve!(phi, phit, phix, operator!)
 
 
 

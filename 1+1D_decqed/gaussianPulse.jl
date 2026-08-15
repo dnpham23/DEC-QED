@@ -3,7 +3,8 @@ using JLD2;
 #using IterativeSolvers;
 using SparseArrays
 using LinearAlgebra
-include("operators.jl");
+include(joinpath(@__DIR__, "operators.jl"));
+include(joinpath(@__DIR__, "simulation.jl"));
 
 # dimensions of the problem
 ###s = 1e-1;
@@ -55,33 +56,22 @@ t_offstart = Int(round(t_off/dt)) + 1
 
 
 
-for t = 1:nv_t-1
-    
-    phi_current  = phi[t,:]
-    phix_current = phi[t,2:end] .- phi[t,1:end-1]
-    phit_past    = phit[t,:]
-    phix[t,:]    = phix_current # update the current phix 
+operator! = (phi_current, phix_current, phit_past) ->
+    sinegordon_dec_3(dx, dt, nv_x, phix_current, phit_past, phi_current, rhs, qq, alpha, "hard-wall")
 
-    # compute the laplacian
-    phit_current = sinegordon_dec_3(dx, dt, nv_x, phix_current, phit_past, phi_current, rhs, qq, alpha, "hard-wall");
-
-    if t <= t_onend
-        At = A*exp(-(t*dt-t_on)^2/(2*sigon^2))
-    elseif t_onend < t < t_offstart
-        At = A
+function driven_boundary!(next_phi, current_phi, increment, step)
+    amplitude = if step <= t_onend
+        A * exp(-(step * dt - t_on)^2 / (2 * sigon^2))
+    elseif step < t_offstart
+        A
     else
-        At = A*exp(-(t*dt-t_off)^2/(2*sigoff^2))
+        A * exp(-(step * dt - t_off)^2 / (2 * sigoff^2))
     end
-
-    phi[t+1,:]      = phit_current + phi_current
-    phi[t+1,1]      = phi[t+1,2] - At*sin(Omega*t*dt)*dx
-    phi[t+1,nv_x]   = phi[t+1,nv_x-1] # phix=0 at x=W
-
-    phit_current[1] = phi[t+1,1] - phi[t,1]
-    phit_current[nv_x] = phi[t+1,nv_x] - phi[t,nv_x]
-    phit[t+1,:] = phit_current
+    fixed_gradient_boundary!(next_phi, current_phi, increment, step,
+        amplitude * sin(Omega * step * dt), 0.0, dx)
 end
-phix[nv_t,:] = phi[nv_t,2:end] .- phi[nv_t,1:end-1]
+
+evolve!(phi, phit, phix, operator!; boundary! = driven_boundary!)
 
 
 

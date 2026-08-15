@@ -4,7 +4,8 @@ using JLD2;
 #using IterativeSolvers;
 using SparseArrays
 using LinearAlgebra
-include("operators.jl");
+include(joinpath(@__DIR__, "operators.jl"));
+include(joinpath(@__DIR__, "simulation.jl"));
 
 # dimensions of the problem
 W = 3000.0;
@@ -42,18 +43,9 @@ phit[1,:] = zeros(nv_x);
 phi[1,:]  = zeros(nv_x);
 ###phix[1,:] = zeros(nv_x-1); # redundant
 
-for t = 1:nv_t-1
-    phi_current  = phi[t,:]
-    phix_current = phi[t,2:end] .- phi[t,1:end-1]
-    phit_past    = phit[t,:]
-    phix[t,:]    = phix_current # update the current phix 
-
-    # compute the laplacian
-    phit_current = kleingordon_massive_dec(dx, dt, nv_x, phix_current, phit_past, phi_current, rhs, g, m);
-    phit[t+1,:] = phit_current
-    phi[t+1,:] = phit_current + phi_current 
-end
-phix[nv_t,:] = phi[nv_t,2:end] .- phi[nv_t,1:end-1]
+operator! = (phi_current, phix_current, phit_past) ->
+    kleingordon_massive_dec(dx, dt, nv_x, phix_current, phit_past, phi_current, rhs, g, m)
+evolve!(phi, phit, phix, operator!)
 
 
 #currrent_charge_conserve_check = -phix[2:nv_t,:] + phix[1:nv_t-1,:] + phit[2:nv_t,2:nv_x] - phit[2:nv_t, 1:nv_x-1];
