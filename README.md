@@ -23,6 +23,10 @@ For numerical modeling, we employ a dual-mesh construction (primal + dual meshes
 ### Spacetime formulation
 We also provide an extension of DEC that treats time as an additional dimension and discretize the equations directly on spacetime [[2]](#2). This feature is currently available for nonlinear wave dynamics in 1+1D. Generalization to higher spatial dimensions is reserved for future work.
 
+The 1+1D examples share a small, dependency-free simulation driver in [1+1D_decqed/simulation.jl](1+1D_decqed/simulation.jl). It centralizes the time evolution, validates field dimensions, computes spatial differences in place, and provides reusable uniform-grid and fixed-gradient-boundary helpers. Individual examples retain only their physical parameters, initial conditions, operator selection, and any problem-specific boundary drive. The driver is included relative to each script, so examples can be launched from any working directory.
+
+Run the lightweight 1+1D regression tests with `julia 1+1D_decqed/test/runtests.jl`.
+
 ## Development status
 DEC-QED as a computational toolbox is still in early stage of development. Examples of applications of the method to specific problems are organized into wrapper files. 
 The generalization of the toolbox to perform simulations of arbitrary geometries is currently under development.
